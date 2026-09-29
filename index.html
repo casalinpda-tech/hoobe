@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>琥比遊戲間 HOOBE</title>
+<meta name="description" content="HOOBE 琥比的遊戲間：一台歐式輪盤、一台水果盤。免安裝、免註冊、免費開玩。">
+<meta property="og:title" content="琥比遊戲間 HOOBE">
+<meta property="og:description" content="一台歐式輪盤、一台水果盤。免安裝、免註冊、免費開玩。">
+<meta property="og:image" content="https://casalinpda-tech.github.io/hoobe/assets/hubi.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/hub.gif">
+<style>
+  :root{
+    --case:#242526; --case2:#3a3b3c; --line:#4a4c4e;
+    --lcd:#b3b1a3; --lcd2:#a7a596; --ink:#14140f;
+    --teal:#2fb8a8; --gold:#c9a227; --red:#b3202a; --blk:#1d1d1d;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  html{background:#141617}
+  body{min-height:100vh}
+  body{
+    background-color:#141617; background-image:radial-gradient(circle at 50% 0%, #2b2f31 0%, #141617 70%);
+    background-repeat:no-repeat; background-size:100% 1400px;
+    color:#e7eaea; font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;
+    padding:28px 18px 60px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px; margin:0 auto}
+  /* ── 機殼風格的區塊 ── */
+  .case{
+    background:linear-gradient(180deg,var(--case2) 0%,var(--case) 100%);
+    border-radius:16px; padding:18px 20px;
+    box-shadow:0 24px 50px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.5);
+  }
+  /* ── 頭 ── */
+  header.hero{display:flex; gap:20px; align-items:center; flex-wrap:wrap; margin-bottom:22px}
+  .mascot{width:96px; height:96px; border-radius:14px; background:#1b1d1e; padding:6px;
+          box-shadow:inset 0 0 0 1px rgba(255,255,255,.08), 0 6px 18px rgba(0,0,0,.5)}
+  .brand{letter-spacing:4px; font-size:13px; color:#9aa0a3; margin-bottom:6px}
+  .brand b{color:var(--teal); font-size:15px; letter-spacing:6px}
+  h1{margin:0 0 6px; font-size:30px; letter-spacing:2px}
+  .lede{margin:0; color:#b6bcbe; font-size:15px; line-height:1.7}
+  /* ── 兩張卡 ── */
+  .games{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+  @media(max-width:760px){ .games{grid-template-columns:1fr} h1{font-size:24px} }
+  a.card{
+    display:block; text-decoration:none; color:inherit; position:relative;
+    background:linear-gradient(180deg,#3a3b3c 0%,#242526 100%);
+    border-radius:16px; padding:18px 18px 16px; overflow:hidden;
+    box-shadow:0 20px 44px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.12), inset 0 -2px 0 rgba(0,0,0,.5);
+    transition:transform .16s ease, box-shadow .16s ease;
+  }
+  a.card:hover{transform:translateY(-3px); box-shadow:0 26px 56px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.16)}
+  .tag{position:absolute; top:14px; right:14px; font-size:11px; letter-spacing:1px; padding:4px 9px; border-radius:99px}
+  .tag.live{background:rgba(47,184,168,.16); color:var(--teal); box-shadow:inset 0 0 0 1px rgba(47,184,168,.5)}
+  .tag.soon{background:rgba(201,162,39,.14); color:var(--gold); box-shadow:inset 0 0 0 1px rgba(201,162,39,.5)}
+  a.card h2{margin:2px 0 8px; font-size:21px; letter-spacing:1.5px}
+  a.card p{margin:0 0 14px; color:#adb3b5; font-size:13.5px; line-height:1.75}
+  a.card .go{margin-top:14px; font-size:14px; letter-spacing:1px; color:var(--teal)}
+  a.card.soon .go{color:var(--gold)}
+  /* 展示件＝液晶槽 */
+  .art{
+    background:linear-gradient(160deg,#c0beb0 0%,var(--lcd) 38%,var(--lcd2) 72%,#b8b6a8 100%);
+    border-radius:8px; padding:10px; position:relative; overflow:hidden;
+    box-shadow:inset 0 0 22px rgba(0,0,0,.22), 0 0 0 5px #1c1d1e, 0 0 0 6px var(--line);
+  }
+  .art::after{content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px)}
+  .art::before{content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(118deg, rgba(255,255,255,.3) 0%, rgba(255,255,255,.04) 26%, transparent 52%)}
+  /* 輪盤數字格 */
+  .grid{display:grid; grid-template-columns:repeat(13,1fr); grid-template-rows:repeat(3,1fr);
+        gap:2px; grid-auto-flow:column}
+  .grid .n{font:600 9px/1 "Courier New",monospace; display:flex; align-items:center; justify-content:center;
+           height:15px; border-radius:2px; color:#f2efe6}
+  .grid .z{grid-row:span 3; height:auto; background:#0f6b3f}
+  .grid .r{background:var(--red)}
+  .grid .b{background:var(--blk)}
+  /* 水果盤三軸 */
+  .slot{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:12px 10px}
+  .reel{background:linear-gradient(180deg,#cfccbd,#b6b3a4); border-radius:6px; padding:5px 0;
+        box-shadow:inset 0 0 14px rgba(0,0,0,.35), 0 0 0 3px #1c1d1e}
+  .reel .sym{display:block; text-align:center; font:700 13px/1.9 "Courier New",monospace;
+             color:rgba(20,20,15,.30); text-shadow:0 0 .5px rgba(20,20,15,.3)}
+  .reel .sym.lit{color:var(--ink); background:rgba(255,255,255,.45);
+                 box-shadow:inset 0 0 0 1px rgba(20,20,15,.25); text-shadow:0 0 .6px rgba(20,20,15,.5)}
+  /* ── 琥比是誰 ── */
+  .who{display:flex; gap:20px; align-items:center; flex-wrap:wrap; margin-top:22px}
+  .who img{width:132px; height:132px; border-radius:12px; object-fit:cover;
+           box-shadow:0 0 0 5px #1c1d1e, 0 0 0 6px var(--line), 0 10px 26px rgba(0,0,0,.5)}
+  .who h3{margin:0 0 8px; font-size:17px; letter-spacing:1.5px; color:var(--teal)}
+  .who p{margin:0; color:#c2c7c9; font-size:14.5px; line-height:1.9; max-width:520px}
+  footer{margin-top:26px; color:#8d9395; font-size:12.5px; line-height:2; text-align:center}
+  footer .k{color:#c2c7c9}
+  .share{margin-top:16px; text-align:center}
+  .share button{
+    font:inherit; font-size:13px; letter-spacing:1px; cursor:pointer;
+    background:#2b2d2e; color:#dfe3e4; border:1px solid var(--line); border-radius:99px; padding:9px 18px;
+  }
+  .share button:hover{border-color:var(--teal); color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="mascot" src="assets/hub.gif" alt="琥比" width="96" height="96">
+    <div style="flex:1; min-width:260px">
+      <div class="brand"><b>HOOBE</b>　琥比遊戲間</div>
+      <h1>進來玩兩台機台</h1>
+      <p class="lede">一台歐式輪盤、一台水果盤。<br>免安裝、免註冊、免費 —— 手機可以玩，輪盤用電腦畫面最完整。</p>
+    </div>
+  </header>
+
+  <section class="games">
+    <a class="card" href="roulette/">
+      <div class="tag live">可以玩了</div>
+      <h2>完整版輪盤</h2>
+      <p>歐式單零 0～36、完整數字押注區、大小／單雙／紅黑。全自動發球、沒有荷官，反射式液晶逐筆顯示押注與派彩。座位上有其他客人，人氣自己會長出來。</p>
+      <div class="art"><div class="grid">
+        <div class="n z">0</div>
+        <div class="n r">1</div>
+        <div class="n b">2</div>
+        <div class="n r">3</div>
+        <div class="n b">4</div>
+        <div class="n r">5</div>
+        <div class="n b">6</div>
+        <div class="n r">7</div>
+        <div class="n b">8</div>
+        <div class="n r">9</div>
+        <div class="n b">10</div>
+        <div class="n b">11</div>
+        <div class="n r">12</div>
+        <div class="n b">13</div>
+        <div class="n r">14</div>
+        <div class="n b">15</div>
+        <div class="n r">16</div>
+        <div class="n b">17</div>
+        <div class="n r">18</div>
+        <div class="n r">19</div>
+        <div class="n b">20</div>
+        <div class="n r">21</div>
+        <div class="n b">22</div>
+        <div class="n r">23</div>
+        <div class="n b">24</div>
+        <div class="n r">25</div>
+        <div class="n b">26</div>
+        <div class="n r">27</div>
+        <div class="n b">28</div>
+        <div class="n b">29</div>
+        <div class="n r">30</div>
+        <div class="n b">31</div>
+        <div class="n r">32</div>
+        <div class="n b">33</div>
+        <div class="n r">34</div>
+        <div class="n b">35</div>
+        <div class="n r">36</div>
+      </div></div>
+      <div class="go">開始玩 ▶</div>
+    </a>
+
+    <a class="card soon" href="slot/">
+      <div class="tag soon">施工中</div>
+      <h2>琥比水果盤</h2>
+      <p>位子留好了。機台在另一台電腦上施工，液晶押注列、籌碼無限、開獎歷史都是同一套路數。做好直接從這裡進去。</p>
+      <div class="art"><div class="slot">
+        <div class="reel"><span class="sym ">★</span><span class="sym lit">7</span><span class="sym ">BAR</span></div>
+        <div class="reel"><span class="sym ">7</span><span class="sym lit">BAR</span><span class="sym ">★</span></div>
+        <div class="reel"><span class="sym ">BAR</span><span class="sym lit">★</span><span class="sym ">7</span></div>
+      </div></div>
+      <div class="go">先看位子 ▶</div>
+    </a>
+  </section>
+
+  <section class="case who">
+    <img src="assets/hubi.jpg" alt="琥比">
+    <div>
+      <h3>琥比是誰</h3>
+      <p>HOOBE 這個名字，來自我們家的白狗 —— 琥比。<br>這裡的每一台機台，都是為了他做的。</p>
+    </div>
+  </section>
+
+  <div class="share"><button id="cp">複製這個網址，分享給朋友</button></div>
+
+  <footer>
+    <span class="k">不需要安裝、不需要註冊、不花一毛錢。</span><br>
+    輪盤是歐式單零真隨機（中獎號先定、球後配，局號與種子都留著可回查）。<br>
+    HOOBE 迷你輪盤（2026）是琥比的第一款作品，已在 Google Play 上架。
+  </footer>
+
+</div>
+<script>
+document.getElementById('cp').addEventListener('click', function(){
+  var u = location.href;
+  var b = this;
+  function done(){ b.textContent = '已複製 ✓　' + u; }
+  if (navigator.clipboard) { navigator.clipboard.writeText(u).then(done, function(){ window.prompt('複製這個網址', u); }); }
+  else { window.prompt('複製這個網址', u); }
+});
+</script>
+</body>
+</html>
