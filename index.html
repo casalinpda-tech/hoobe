@@ -93,6 +93,19 @@
   .who p{margin:0; color:#c2c7c9; font-size:14.5px; line-height:1.9; max-width:520px}
   .tip{margin:14px 4px 0; text-align:center; color:#9aa0a3; font-size:12.5px; line-height:2}
   .tip b{color:var(--teal)}
+  /* 迷你輪盤 廣告卡 */
+  .ad{display:flex; gap:20px; align-items:center; flex-wrap:wrap; margin-top:22px}
+  .ad-tag{display:inline-block; font-size:11px; letter-spacing:1px; padding:3px 9px; border-radius:99px;
+          color:var(--gold); background:rgba(201,162,39,.14); box-shadow:inset 0 0 0 1px rgba(201,162,39,.5); margin-bottom:8px}
+  .ad h3{margin:0 0 8px; font-size:20px; letter-spacing:1.5px}
+  .ad p{margin:0 0 12px; color:#b6bcbe; font-size:14px; line-height:1.85; max-width:560px}
+  .ad-btn{display:inline-block; text-decoration:none; font-size:14px; font-weight:700; letter-spacing:1px;
+          color:#0d1f1d; background:linear-gradient(180deg,#4fd0c0,#2fb8a8); padding:10px 20px; border-radius:9px;
+          box-shadow:0 6px 16px rgba(47,184,168,.25)}
+  .ad-btn:hover{filter:brightness(1.08)}
+  .ad-url{margin-top:10px; font:11.5px/1.6 "Courier New",monospace; color:#7f8688; word-break:break-all}
+  .ad-icon{width:96px; height:96px; border-radius:18px;
+           box-shadow:0 0 0 5px #1c1d1e, 0 0 0 6px var(--line), 0 10px 26px rgba(0,0,0,.5)}
   footer{margin-top:26px; color:#8d9395; font-size:12.5px; line-height:2; text-align:center}
   footer .k{color:#c2c7c9}
   footer a{color:var(--teal); text-decoration:none}
@@ -184,6 +197,17 @@
     <div>
       <h3>琥比是誰</h3>
       <p>HOOBE 這個名字，來自我們家的西高地白梗 —— 琥比。他已當天使去了。<br>這裡的每一台機台，都是為紀念他而做的。</p>
+    </div>
+  </section>
+
+  <section class="case ad">
+    <img class="ad-icon" src="assets/mini-icon.png" alt="HOOBE 迷你輪盤">
+    <div style="flex:1; min-width:280px">
+      <div class="ad-tag">廣告　HOOBE 手機版</div>
+      <h3>HOOBE 迷你輪盤</h3>
+      <p>一支手機就能開的數字輪盤：押大小、猜單雙，開牌快、一場幾十秒。<br>免註冊、免費下載 —— 走路、等車、睡前都能來一把。</p>
+      <a class="ad-btn" href="https://play.google.com/store/apps/details?id=com.hoobe.roulette" target="_blank" rel="noopener">到 Google Play 下載 ▶</a>
+      <div class="ad-url">https://play.google.com/store/apps/details?id=com.hoobe.roulette</div>
     </div>
   </section>
 
