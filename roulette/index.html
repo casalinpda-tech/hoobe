@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HOOBE 完整版輪盤 — 液晶 × 押注盤</title>
 <meta name="description" content="HOOBE 琥比的完整版輪盤：歐式單零 0~36、完整數字押注區、大小單雙紅黑，全自動無荷官。">
 <meta property="og:title" content="HOOBE 完整版輪盤">
@@ -232,13 +233,54 @@
 #zoomtips b{color:#2fb8a8; font-weight:700}
 #zoomtips button{background:none; border:0; color:#9aa0a3; font:inherit; cursor:pointer; padding:0 1px}
 #zoomtips.hide{opacity:0; pointer-events:none}
+
+/* ── 窄螢幕（手機／平板）自適應 ──────────────────────────────
+   盤面是照大螢幕排的固定 1264px。在比它窄的螢幕上，原本 body 用 flex 置中
+   → 左右兩邊都溢出，而「左邊」那段捲不回來（捲軸只能往右），
+     所以輪盤與押注區的左側永遠看不到、放大縮小也救不回來。
+   這裡改成：盤面自動縮到滿版（置中、左邊一定進得來），要看清細節再雙指放大。 */
+@media (max-width:1320px){
+  body{display:block; padding:8px; overflow-x:auto}
+  .app{margin:0 auto}
+}
 </style>
 <div id="zoomtips">
-  <span><b>Ctrl ＋／－</b>　縮放盤面（手機：雙指縮放）</span>
+  <span>盤面<b>已自動縮到滿版</b>　手機：雙指放大看細節（電腦：Ctrl ＋／－）</span>
   <button onclick="document.getElementById('zoomtips').classList.add('hide')" aria-label="關閉">✕</button>
 </div>
 <script>
 setTimeout(function(){var e=document.getElementById('zoomtips'); if(e) e.classList.add('hide');}, 12000);
+</script>
+<script>
+/* 盤面自動縮到滿版：設計寬 1264px。優先使用 CSS zoom（會正確佔版位，不會有拉不回來的溢出），
+   不支援 zoom 的瀏覽器退回 transform:scale（搭配可橫向捲動，左邊同樣進得來）。 */
+(function(){
+  function boot(){
+    var app=document.querySelector('.app'); if(!app) return;
+    var DESIGN=1264, PAD=8;
+    function fit(){
+      var prev=app.style.zoom; if(prev) app.style.zoom='';   /* 先還原再量，才量得到真實設計寬度 */
+      var vw=document.documentElement.clientWidth;
+      var s=Math.min(1,(vw-PAD*2)/DESIGN);
+      if('zoom' in app.style){
+        app.style.transform=''; app.style.marginBottom='';
+        if(s<1) app.style.zoom=s;
+      }else{                                                  /* Firefox 等：用 transform */
+        var h=app.offsetHeight||0;
+        app.style.transformOrigin='top left';
+        app.style.transform = s<1 ? 'scale('+s+')' : '';
+        app.style.marginBottom = s<1 ? (-(h*(1-s)))+'px' : '';
+      }
+      window.__boardScale=s;
+    }
+    fit();
+    window.addEventListener('resize',fit);
+    window.addEventListener('orientationchange',function(){ setTimeout(fit,200); setTimeout(fit,600); });
+    window.addEventListener('load',fit);
+    [150,500,1200,2500].forEach(function(t){ setTimeout(fit,t); });   /* 字型/圖片到位後再校一次 */
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
 </script>
 
 <div class="app">
