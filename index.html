@@ -137,10 +137,10 @@
 <div class="wrap">
 
   <div class="topbar">
-    <div class="counter" id="visitorBox" hidden>
-      <div class="lbl">訪客</div>
-      <div class="num" id="uvNum">—</div>
-      <div class="sub">瀏覽 <span id="pvNum">—</span> 次</div>
+    <div class="counter" id="visitorBox" hidden title="累計＝開站至今的總和，不是「目前線上人數」">
+      <div class="lbl">累計人次</div>
+      <div class="num" id="pvNum">—</div>
+      <div class="sub">訪客 <span id="uvNum">—</span> 人</div>
     </div>
   </div>
 
@@ -255,9 +255,9 @@ document.getElementById('cp').addEventListener('click', function(){
 });
 </script>
 <script>
-/* ── 右上角訪客計數（Abacus 免費計數服務，不需註冊）──
-   訪客＝同一個瀏覽器只算一次（localStorage）；瀏覽＝每次載入 +1。
-   服務讀不到就整塊不顯示，不讓頁面出現破圖或 —。 */
+/* ── 右上角累計計數（Abacus 免費計數服務，不需註冊）──
+   累計人次＝每次載入 +1（首頁大字）；訪客＝同一個瀏覽器只算一次（localStorage）。
+   兩者都是「開站至今累計」，不是在線人數。服務讀不到就整塊不顯示。 */
 (function(){
   var NS = 'hoobe-hubi', K_UV = 'visitors', K_PV = 'views';
   var API = 'https://abacus.jasoncameron.dev/';
@@ -284,7 +284,7 @@ document.getElementById('cp').addEventListener('click', function(){
   var pv = bump(K_PV);
 
   Promise.all([uv, pv]).then(function(r){
-    if (r[0] === null && r[1] === null) return;      // 計數服務不通 → 不顯示
+    if (r[0] === null || r[1] === null) return;      // 計數服務不通 → 不顯示
     document.getElementById('uvNum').textContent = fmt(r[0]);
     document.getElementById('pvNum').textContent = fmt(r[1]);
     document.getElementById('visitorBox').hidden = false;
