@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>琥比水果盤・連線測試版 v0</title>
+<style>
+  :root{
+    --body:#1c1b19; --panel:#d8d3c2; --panel2:#c3bda9; --lcd:#b9c47f; --lcd2:#8f9b58;
+    --ink:#17170f; --led:#ffe14d; --red:#c0392b; --green:#1f6f3f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#0f0f0f;color:#111;
+    font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+  #app{max-width:1080px;margin:0 auto;padding:10px 12px 40px}
+  .topbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;
+    background:#2a2a28;color:#e8e4d8;border:2px solid #444;border-radius:8px;padding:8px 10px;font-size:14px}
+  .topbar .grp{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .badge{background:var(--led);color:#111;font-weight:700;border-radius:4px;padding:2px 6px;font-size:12px}
+  .topbar input{background:#111;color:var(--led);border:1px solid #555;border-radius:4px;
+    padding:4px 6px;font-size:14px;width:7.5em;font-family:inherit}
+  #nameInput{width:6em}
+  .net{padding:2px 8px;border-radius:10px;font-size:12px;border:1px solid #666}
+  .net.ok{background:#14361f;border-color:#2f7d4c;color:#8ef0b0}
+  .net.warn{background:#3a3218;border-color:#8a7326;color:#ffe9a3}
+  .net.bad{background:#3a1717;border-color:#8a2626;color:#ffb0b0}
+
+  main{display:flex;gap:12px;margin-top:12px;align-items:flex-start;flex-wrap:wrap}
+  .machine{flex:1 1 520px;min-width:320px;background:linear-gradient(#e2ddcc,#bdb7a2);
+    border:3px solid #6a6455;border-radius:14px;padding:12px;box-shadow:0 6px 0 #6a6455,0 10px 24px #0008}
+  .mach-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+  .mach-title{font-weight:800;letter-spacing:2px;color:#3b3a2f;font-size:15px}
+  .credit-box{background:#111;border:3px solid #555;border-radius:8px;padding:4px 12px;text-align:right;min-width:170px}
+  .credit-box .lab{color:#8f8f7a;font-size:11px;letter-spacing:2px}
+  .credit-box .val{color:var(--led);font-family:"DS-Digital",Consolas,monospace;font-size:30px;line-height:1.05;
+    text-shadow:0 0 10px #ffe14d88}
+  .reels{background:var(--lcd);border:6px inset #9a9a7a;border-radius:10px;padding:8px;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:6px;position:relative}
+  .cell{background:linear-gradient(#e9ebd6,#cfd6a9);border:2px solid #8f9b58;border-radius:6px;
+    aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .cell img{width:74%;height:74%;object-fit:contain;image-rendering:auto}
+  .cell.spin img{filter:blur(0.6px);opacity:.85}
+  .cell.win{border-color:var(--red);box-shadow:inset 0 0 0 3px #ffd34d,0 0 12px #ffd34d99;
+    animation:blink .5s steps(2) infinite}
+  @keyframes blink{50%{background:#fff6c9}}
+  .result{margin-top:8px;background:#111;border-radius:8px;padding:6px 10px;min-height:44px;
+    color:var(--led);font-size:15px;display:flex;align-items:center;gap:8px}
+  .result.win{color:#9dffb6}
+  .result .big{font-size:22px;font-weight:800}
+  .controls{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  button{font-family:inherit;font-size:15px;border-radius:8px;border:2px solid #6a6455;
+    background:linear-gradient(#f3eddc,#cfc8b2);padding:8px 14px;cursor:pointer;box-shadow:0 3px 0 #8b8574;color:#222}
+  button:active{transform:translateY(2px);box-shadow:0 1px 0 #8b8574}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  #spinBtn{font-size:20px;font-weight:800;padding:10px 26px;background:linear-gradient(#ffd873,#e0a01c);border-color:#7a5a12}
+  .bets{display:flex;gap:6px}
+  .bets button{padding:6px 10px;font-size:14px}
+  .bets button.on{background:linear-gradient(#ffd873,#e0a01c);border-color:#7a5a12;font-weight:800}
+  #autoBtn.on{background:linear-gradient(#a8f0b8,#3fa864);border-color:#1f6f3f;font-weight:800}
+  .hint{font-size:12px;color:#5b5747;margin-top:8px;line-height:1.5}
+
+  aside{flex:0 0 268px;background:var(--panel);border:3px solid #6a6455;border-radius:12px;padding:10px}
+  aside h3{margin:0 0 6px;font-size:13px;letter-spacing:1px;color:#3b3a2f}
+  .pay{display:flex;justify-content:space-between;align-items:center;font-size:13px;
+    padding:3px 0;border-bottom:1px dashed #a9a390}
+  .pay img{width:17px;height:17px;vertical-align:-3px}
+  .pay .r{font-weight:800}
+  .paytable-sep{height:8px}
+  .paysub{font-size:11px;color:#5b5747;margin:6px 0 2px;font-weight:700}
+
+  footer{margin-top:12px;display:flex;gap:12px;flex-wrap:wrap}
+  .box{background:var(--panel);border:3px solid #6a6455;border-radius:12px;padding:8px 10px}
+  #playersBox{flex:0 0 240px}
+  #logBox{flex:1 1 380px;min-width:280px}
+  .box h3{margin:0 0 6px;font-size:13px;letter-spacing:1px;color:#3b3a2f}
+  .pl{display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0}
+  .pl .dot{width:8px;height:8px;border-radius:50%;background:#3fa864;box-shadow:0 0 6px #3fa864}
+  .pl .tag{font-size:11px;background:#2a2a28;color:var(--led);border-radius:4px;padding:1px 5px}
+  .pl .tag.mine{background:#1f6f3f;color:#dfffe9}
+  #log{height:172px;overflow:auto;background:#141410;border-radius:8px;padding:6px 8px;
+    color:#cfd6a9;font-size:13px;line-height:1.55;font-family:Consolas,monospace}
+  #log div{border-bottom:1px solid #24241c;padding:1px 0}
+  #log .w{color:#ffe14d}
+  #log .b{color:#ff9b9b}
+  #quick{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+  #quick button{padding:4px 10px;font-size:13px}
+  .stats{font-size:12px;color:#5b5747;margin-top:6px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="grp">
+      <span class="badge">連線測試版 v0</span>
+      <span>房號 <input id="roomInput" value="hubi-1" maxlength="24"></span>
+      <span>你是 <input id="nameInput" maxlength="8"></span>
+    </div>
+    <div class="grp">
+      <span class="net warn" id="netStat">連線中…</span>
+      <span class="net" id="hostStat">莊家：—</span>
+      <span class="net" id="peerStat">在線 1</span>
+    </div>
+  </div>
+
+  <main>
+    <section class="machine">
+      <div class="mach-top">
+        <div class="mach-title">琥比水果盤　共用一台</div>
+        <div class="credit-box"><div class="lab">共用積分</div><div class="val" id="credit">1000</div></div>
+      </div>
+      <div class="reels" id="reels"></div>
+      <div class="result" id="result">連上線後，大家共用同一台機台、同一個分數。</div>
+      <div class="controls">
+        <button id="spinBtn">開始</button>
+        <div class="bets" id="bets"></div>
+        <button id="autoBtn">AUTO</button>
+        <button id="refillBtn">＋100（免費補充）</button>
+      </div>
+      <div class="hint">
+        怎麼玩：<b>兩個裝置開同一個網址、同一個房號</b>，就會進到同一台機台。<br>
+        誰按「開始」都可以，開獎由<b>莊家（最先進房的人）</b>統一決定後廣播，其他人同步看到同一場轉輪、同一個分數 —— 這就是連線版的骨架。<br>
+        按 <b>Ctrl + 5</b> 也可以免費補充 100 分（沿用單機版的佛心設定）。
+      </div>
+    </section>
+
+    <aside>
+      <h3>賠率表（跟單機版相同）</h3>
+      <div class="paysub">任一條線 3 個相同</div>
+      <div id="payLines"></div>
+      <div class="paytable-sep"></div>
+      <div class="paysub">全盤 9 格相同（大獎）</div>
+      <div id="payAll"></div>
+      <div class="hint">原型版：符號等機率（單機版的權重未載入），所以中獎率與正式版不同。</div>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="box" id="playersBox">
+      <h3>在線玩家</h3>
+      <div id="players"></div>
+    </div>
+    <div class="box" id="logBox">
+      <h3>機台記錄</h3>
+      <div id="log"></div>
+      <div class="stats" id="stats">次數 0 ｜ 最大獎 —</div>
+      <div id="quick">
+        <button data-say="水！">水！</button>
+        <button data-say="讚啦">讚啦</button>
+        <button data-say="再來一局">再來一局</button>
+        <button data-say="換手換手">換手換手</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* 載入 MQTT 程式庫（CDN 失敗就換另一家） */
+(function loadLib(){
+  var urls=['https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js',
+            'https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js'];
+  function tryLoad(i){
+    if(i>=urls.length){ window.__libFail=true; boot(); return; }
+    var s=document.createElement('script');
+    s.src=urls[i];
+    s.onload=function(){ boot(); };
+    s.onerror=function(){ tryLoad(i+1); };
+    document.head.appendChild(s);
+  }
+  tryLoad(0);
+})();
+</script>
+
+<script>
+function boot(){
+'use strict';
+/* ============ 賠率（與單機版 slot/index.html 完全一致） ============ */
+var SYM=['🍉','🍊','🍇','🍋','🍒','🔔','⭐','HUBI'];
+var SRC={'🍉':'../slot/noto_emoji/西瓜.svg','🍊':'../slot/noto_emoji/柳橙.svg',
+         '🍇':'../slot/noto_emoji/葡萄.svg','🍋':'../slot/noto_emoji/檸檬.svg',
+         '🍒':'../slot/noto_emoji/櫻桃.svg','🔔':'../slot/noto_emoji/鈴鐺.svg',
+         '⭐':'../slot/noto_emoji/星星.svg','HUBI':'../slot/hoobe.gif'};
+var ZH={'🍉':'西瓜','🍊':'柳橙','🍇':'葡萄','🍋':'檸檬','🍒':'櫻桃','🔔':'鈴鐺','⭐':'星星','HUBI':'琥比'};
+var LINE_PAY={'⭐':10,'🔔':5,'🍒':1.2,'🍋':1.2,'🍇':1.2,'🍊':1.2,'🍉':3,'HUBI':50};
+var ALL_PAY={'HUBI':300,'⭐':150,'🔔':100,'🍉':80,'🍊':60,'🍇':60,'🍋':60,'🍒':60};
+var LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[6,4,2]];
+var BETS=[10,20,30,50,100];
+var HB_MS=4000, DEAD_MS=13000, START_CREDIT=1000;
+
+/* ============ 房間 / 身分 ============ */
+var q=new URLSearchParams(location.search);
+var ROOM=(q.get('r')||'hubi-1').toLowerCase().replace(/[^a-z0-9\-]/g,'').slice(0,24)||'hubi-1';
+var TOPIC='hoobe/mp/'+ROOM;
+var pid=sessionStorage.getItem('mp-pid');
+if(!pid){ pid=Math.random().toString(36).slice(2,8); sessionStorage.setItem('mp-pid',pid); }
+var myName=sessionStorage.getItem('mp-name')||('訪客'+pid.slice(0,2).toUpperCase());
+var t0=Date.now();
+
+/* ============ DOM ============ */
+var $=function(id){return document.getElementById(id);};
+var cells=[], reelsEl=$('reels');
+for(var i=0;i<9;i++){
+  var d=document.createElement('div'); d.className='cell';
+  var im=document.createElement('img'); im.alt=''; d.appendChild(im);
+  reelsEl.appendChild(d); cells.push({el:d,img:im});
+}
+function setCell(i,sym){ cells[i].img.src=SRC[sym]; cells[i].img.dataset.sym=sym; }
+function clearWin(){ for(var i=0;i<9;i++) cells[i].el.classList.remove('win'); }
+
+$('roomInput').value=ROOM;
+$('nameInput').value=myName;
+
+/* 賠率表 */
+(function(){
+  var order=['⭐','🔔','🍉','🍇','🍊','🍋','🍒'], o='';
+  order.forEach(function(s){ o+='<div class="pay"><span>'+img(s)+img(s)+img(s)+' '+ZH[s]+'</span><span class="r">'+LINE_PAY[s]+'x</span></div>'; });
+  $('payLines').innerHTML=o;
+  o='';
+  ['HUBI','⭐','🔔','🍉','🍊','🍇','🍋','🍒'].forEach(function(s){
+    o+='<div class="pay"><span>'+img(s)+' 全盤 '+ZH[s]+'</span><span class="r">'+ALL_PAY[s]+'x</span></div>';
+  });
+  $('payAll').innerHTML=o;
+})();
+function img(s){ return '<img src="'+SRC[s]+'" alt="'+ZH[s]+'">'; }
+
+/* 押注按鈕 */
+var bet=BETS[0];
+(function(){
+  var box=$('bets');
+  BETS.forEach(function(b){
+    var btn=document.createElement('button');
+    btn.textContent=b; if(b===bet) btn.className='on';
+    btn.onclick=function(){ bet=b; [].forEach.call(box.children,function(c){c.classList.remove('on');}); btn.className='on'; };
+    box.appendChild(btn);
+  });
+})();
+
+/* ============ 連線 ============
+   公用 broker 彼此不通（在 A 家發、B 家收不到），所以同時接三家：
+   同一則訊息三家都送，收到重複的（mid 相同）就丟掉。
+   好處：對方連哪一家都看得到；任一家掛掉也不會斷線。 */
+var BROKERS=[
+  {name:'HiveMQ',   url:'wss://broker.hivemq.com:8884/mqtt'},
+  {name:'EMQX',     url:'wss://broker.emqx.io:8084/mqtt'},
+  {name:'Mosquitto',url:'wss://test.mosquitto.org:8081/mqtt'}
+];
+var clients=[], everConnected=false, seq=0, midN=0;
+var seen=new Set(), seenOrder=[];
+var players=new Map();          /* id -> {n,t0,last} */
+var credit=START_CREDIT;        /* 共用積分（莊家為準） */
+var busy=false, autoOn=false, autoTimer=null, spinTimer=null;
+var lastPeerState=null, wasHost=null, forceGrid=null, bootAdopt=true;
+setTimeout(function(){ bootAdopt=false; },10000);
+var stats={spins:0,best:0,bestWho:'—'};
+
+function net(txt,cls){ var e=$('netStat'); e.textContent=txt; e.className='net '+cls; }
+function updateNet(){
+  var ok=BROKERS.filter(function(b){return b.state==='ok';});
+  if(ok.length) net('已連線 '+ok.length+'/'+BROKERS.length+'（房間 '+ROOM+'）','ok');
+  else if(everConnected) net('斷線，重連中…','bad');
+  else net('連線中…','warn');
+}
+
+function connect(){
+  if(window.__libFail || typeof mqtt==='undefined'){
+    net('連線程式庫載入失敗','bad');
+    setTimeout(connect,4000); return;
+  }
+  BROKERS.forEach(function(b,i){
+    var cl;
+    try{
+      cl=mqtt.connect(b.url,{clientId:'hubi-'+pid+'-'+i+'-'+Math.random().toString(36).slice(2,5),
+        clean:true,keepalive:30,connectTimeout:8000,reconnectPeriod:4000});
+    }catch(e){ b.state='error'; updateNet(); return; }
+    b.client=cl; b.state='connecting'; clients.push(cl);
+    cl.on('connect',function(){
+      b.state='ok'; b.ever=true;
+      cl.subscribe(TOPIC+'/#',{qos:0});
+      updateNet();
+      if(!everConnected){
+        everConnected=true;
+        announce(); heartbeat(); pubState(true);
+        setInterval(heartbeat,HB_MS);
+        setInterval(function(){ if(isHost()) pubState(true); },15000);
+      }
+    });
+    cl.on('message',function(topic,payload){ onMessage(topic,payload.toString()); });
+    cl.on('close',function(){ b.state='closed'; updateNet(); });
+    cl.on('reconnect',function(){ b.state='connecting'; updateNet(); });
+    cl.on('error',function(){ if(!b.ever) b.state='error'; updateNet(); });
+  });
+  setTimeout(updateNet,1500);
+}
+
+/* 送訊息：三家都送；mid 用來去重 */
+function pub(sub,obj,retain){
+  if(!obj.mid) obj.mid=pid+'-'+(++midN);
+  remember(obj.mid);
+  var payload=JSON.stringify(obj), sent=0;
+  clients.forEach(function(cl){
+    try{ if(cl.connected){ cl.publish(TOPIC+'/'+sub,payload,{qos:0,retain:!!retain}); sent++; } }catch(e){}
+  });
+  return sent;
+}
+function remember(mid){
+  if(seen.has(mid)) return;
+  seen.add(mid); seenOrder.push(mid);
+  if(seenOrder.length>600) seen.delete(seenOrder.shift());
+}
+function announce(){ pub('msg',{t:'join',id:pid,n:myName,t0:t0}); }
+function heartbeat(){
+  players.set(pid,{n:myName,t0:t0,last:Date.now()});   /* 自己的心跳被去重擋掉，這裡自己更新 */
+  pub('hb/'+pid,{n:myName,t0:t0},true);
+}
+function pubState(retain){ pub('state',{credit:credit,seq:seq,host:hostId()},!!retain); }
+
+/* 離場時把自己的保留訊息清掉（別人就不會再看到我） */
+window.addEventListener('beforeunload',function(){
+  clients.forEach(function(cl){ try{ cl.publish(TOPIC+'/hb/'+pid,'',{retain:true}); }catch(e){} });
+});
+
+/* 除錯用（在瀏覽器 console 打 __dbg() 看狀態） */
+window.__dbg=function(){
+  return {room:ROOM,pid:pid,name:myName,
+    brokers:BROKERS.map(function(b){return {n:b.name,s:b.state||'-'};}),
+    players:Array.from(players.keys()),host:hostId(),isHost:isHost(),
+    credit:credit,seq:seq,seen:seen.size,busy:busy};
+};
+/* 測試用：指定下一場的盤面（方便看中獎畫面，例如 __forceGrid(['⭐','⭐','⭐',...])） */
+window.__forceGrid=function(g){ forceGrid=g; return '下一場盤面已指定'; };
+window.__testEval=function(g,b){ return evaluate(g,b); };
+window.__testRoll=function(n){ var counts={}; for(var i=0;i<(n||100000);i++){ var r=evaluate(roll(),10); if(r) counts[r.sym]=(counts[r.sym]||0)+1; } return counts; };
+
+/* ============ 訊息處理 ============ */
+function onMessage(topic,raw){
+  if(!raw) return;
+  var suffix=topic.substring(TOPIC.length+1);
+  var msg; try{ msg=JSON.parse(raw); }catch(e){ return; }
+  if(msg.mid){                        /* 三家 broker 會送來三份，重複的丟掉 */
+    if(seen.has(msg.mid)) return;
+    remember(msg.mid);
+  }
+
+  if(suffix.indexOf('hb/')===0){                       /* 心跳（保留訊息） */
+    var id=suffix.slice(3);
+    if(!raw || raw===''){ players.delete(id); renderPlayers(); return; }
+    var prev=players.get(id);
+    players.set(id,{n:msg.n||id,t0:msg.t0||Date.now(),last:Date.now()});
+    if(!prev && id!==pid) log('<span class="w">'+esc(msg.n||id)+'</span> 進房了');
+    renderPlayers(); return;
+  }
+  if(suffix==='state'){                                 /* 莊家的權威分數 */
+    if(typeof msg.seq==='number' && msg.seq>seq) seq=msg.seq;
+    if(typeof msg.credit==='number'){ lastPeerState={credit:msg.credit,ts:Date.now()}; }
+    var adopt = bootAdopt || (!busy && !isHost());       /* 剛開頁 10 秒內：承接前一位莊家的分數 */
+    if(typeof msg.credit==='number' && adopt){ credit=msg.credit; renderCredit(); }
+    return;
+  }
+  if(suffix!=='msg') return;
+
+  switch(msg.t){
+    case 'join':
+      if(msg.id===pid) break;
+      if(!players.has(msg.id)){
+        players.set(msg.id,{n:msg.n||'訪客',t0:msg.t0||Date.now(),last:Date.now()});
+        log('<span class="w">'+esc(msg.n||'訪客')+'</span> 進房了');
+      }
+      if(isHost()) pubState(true);
+      break;
+    case 'bye':
+      players.delete(msg.id); renderPlayers(); break;
+    case 'spin':      /* 有人按了開始 → 由莊家開獎 */
+      if(!isHost()) break;
+      if(busy){ log('<span class="b">機台忙碌中</span>（'+esc(msg.n||'訪客')+' 太慢按）'); break; }
+      if(credit<msg.bet){ log('<span class="b">積分不足</span>，'+esc(msg.n||'訪客')+' 無法押注'); break; }
+      hostSpin(msg);
+      break;
+    case 'res':
+      handleResult(msg); break;
+    case 'refill':
+      if(!isHost()) break;
+      credit+=100; seq++; pubState(true);
+      log('<span class="w">＋100</span> 免費補充（'+esc(msg.n||'訪客')+' 按的）');
+      renderCredit(); break;
+    case 'say':
+      log(esc(msg.n||'訪客')+'：'+esc(msg.msg||'')); break;
+  }
+}
+
+/* ============ 莊家（房間裡最先進的人） ============ */
+function hostId(){
+  var best=null;
+  players.forEach(function(p,id){ if(!best||p.t0<best.t0||(p.t0===best.t0&&id<best.id)) best={id:id,t0:p.t0}; });
+  return best?best.id:pid;
+}
+function isHost(){ var h=hostId(); return !h||h===pid; }
+
+/* ============ 開獎（莊家負責，其他人等廣播） ============ */
+function roll(){ var g=[],i; for(i=0;i<9;i++) g.push(SYM[Math.floor(Math.random()*SYM.length)]); return g; }
+function evaluate(grid,b){
+  var first=grid[0], allSame=true, i;
+  for(i=1;i<9;i++) if(grid[i]!==first){ allSame=false; break; }
+  if(allSame) return {kind:'ALL',sym:first,line:null,amount:Math.round(b*ALL_PAY[first])};
+  for(var L=0;L<LINES.length;L++){
+    var ln=LINES[L], a=grid[ln[0]], c=grid[ln[1]], e=grid[ln[2]];
+    if(a===c && c===e) return {kind:'LINE',sym:a,line:ln,which:L,amount:Math.round(b*LINE_PAY[a])};
+  }
+  return null;
+}
+function hostSpin(m){
+  busy=true;
+  var grid=forceGrid||roll(), win=evaluate(grid,m.bet);
+  forceGrid=null;
+  credit=credit-m.bet+(win?win.amount:0);
+  seq++;
+  var res={t:'res',seq:seq,who:m.id,whoName:m.n,bet:m.bet,grid:grid,
+           win:win,amount:win?win.amount:0,credit:credit,host:pid};
+  pub('msg',res);
+  pubState(true);
+  renderCredit();
+  handleResult(res);        /* 莊家自己也在機台前面：本機直接播（不必等 broker 回音） */
+}
+
+/* ============ 動畫（所有人播同一場） ============ */
+function animate(grid,done){
+  var i;
+  for(i=0;i<9;i++){ cells[i].el.classList.add('spin'); clearWin(); }
+  var spin=setInterval(function(){
+    for(var k=0;k<9;k++) setCell(k,SYM[Math.floor(Math.random()*SYM.length)]);
+  },70);
+  setTimeout(function(){
+    clearInterval(spin);
+    for(var k2=0;k2<9;k2++){ cells[k2].el.classList.remove('spin'); setCell(k2,grid[k2]); }
+    done();
+  },900);
+}
+var lastSeq=0;
+function handleResult(r){
+  if(r.seq && r.seq<=lastSeq) return;      /* 同一場只播一次（去掉 broker 回音的重複） */
+  if(r.seq) lastSeq=r.seq;
+  clearTimeout(spinTimer);
+  busy=true;
+  if(typeof r.credit==='number'){ credit=r.credit; renderCredit(); }
+  animate(r.grid,function(){
+    busy=false;
+    if(r.win && r.win.line){ for(var i=0;i<3;i++) cells[r.win.line[i]].el.classList.add('win'); }
+    else if(r.win && r.win.kind==='ALL'){ for(var j=0;j<9;j++) cells[j].el.classList.add('win'); }
+    var resEl=$('result');
+    var who=r.whoName||'訪客';
+    if(r.amount>0){
+      var kind = (r.win.kind==='ALL')?'<b>全盤</b>':'連線';
+      resEl.className='result win';
+      resEl.innerHTML='<span class="big">'+who+' 中了！</span> '+kind+' '+ZH[r.win.sym]+' → <b>+'+r.amount.toLocaleString()+'</b>（押 '+r.bet+'）';
+      log('<span class="w">'+esc(who)+' 中 '+ZH[r.win.sym]+(r.win.kind==='ALL'?' 全盤':' 連線')+' +'+r.amount.toLocaleString()+'</span>');
+      if(r.win.kind==='ALL'){ beep(2); } else { beep(1); }
+    }else{
+      resEl.className='result';
+      resEl.innerHTML=who+' 沒中（押 '+r.bet+'）';
+      log(esc(who)+' 沒中 −'+r.bet);
+    }
+    stats.spins++; if(r.amount>stats.best){ stats.best=r.amount; stats.bestWho=who; }
+    renderStats();
+    renderCredit();
+  });
+}
+
+/* ============ 玩家動作 ============ */
+function spinPress(){
+  if(busy) return;
+  if(credit<bet){ flash('積分不足（'+credit+' < '+bet+'）→ 請按「＋100 免費補充」'); return; }
+  busy=true; $('spinBtn').disabled=true;
+  if(isHost()){ hostSpin({id:pid,n:myName,bet:bet}); return; }
+  pub('msg',{t:'spin',id:pid,n:myName,bet:bet});
+  $('spinBtn').textContent='等待莊家…';
+  spinTimer=setTimeout(function(){
+    if(busy){ busy=false; $('spinBtn').disabled=false; $('spinBtn').textContent='開始';
+      flash('莊家沒回應（可能離線），等一下會自動由下一位接手'); }
+  },6000);
+}
+function afterSpinUI(){ $('spinBtn').disabled=false; $('spinBtn').textContent='開始'; }
+$('spinBtn').onclick=spinPress;
+
+/* 動畫結束後把按鈕解鎖 */
+setInterval(function(){ if(!busy && $('spinBtn').disabled) afterSpinUI(); },300);
+
+$('autoBtn').onclick=function(){
+  autoOn=!autoOn; this.className=autoOn?'on':'';
+  log('AUTO '+(autoOn?'開啟':'關閉')+'（'+esc(myName)+'）');
+  if(autoOn){
+    autoTimer=setInterval(function(){ if(!busy && !$('spinBtn').disabled) spinPress(); },1600);
+  }else{ clearInterval(autoTimer); }
+};
+
+$('refillBtn').onclick=function(){
+  if(isHost()){ credit+=100; seq++; pubState(true); renderCredit(); log('<span class="w">＋100</span> 免費補充（'+esc(myName)+'）'); }
+  else { pub('msg',{t:'refill',id:pid,n:myName}); log('向莊家要 ＋100…'); }
+};
+document.addEventListener('keydown',function(e){ if(e.ctrlKey && (e.key==='5'||e.keyCode===53)){ e.preventDefault(); $('refillBtn').click(); } });
+
+$('quick').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  pub('msg',{t:'say',id:pid,n:myName,msg:b.dataset.say});
+  log(esc(myName)+'：'+esc(b.dataset.say));
+});
+
+$('roomInput').onchange=function(){
+  var r=this.value.trim().toLowerCase().replace(/[^a-z0-9\-]/g,'')||'hubi-1';
+  location.href=location.pathname+'?r='+encodeURIComponent(r);
+};
+$('nameInput').onchange=function(){
+  myName=this.value.trim().slice(0,8)||'訪客'; sessionStorage.setItem('mp-name',myName);
+  announce(); heartbeat(); renderPlayers();
+};
+
+/* ============ 畫面 ============ */
+function renderCredit(){ $('credit').textContent=credit.toLocaleString(); }
+function renderStats(){
+  $('stats').textContent='次數 '+stats.spins+' ｜ 最大獎 '+(stats.best?stats.bestWho+' '+stats.best.toLocaleString():'—');
+}
+function renderPlayers(){
+  var me=players.get(pid); if(me) me.fresh=false;
+  var h=hostId();
+  var arr=[]; players.forEach(function(p,id){ arr.push({id:id,n:p.n,t0:p.t0}); });
+  arr.sort(function(a,b){ return a.t0-b.t0; });
+  $('peerStat').textContent='在線 '+arr.length;
+  $('hostStat').textContent='莊家：'+((players.get(h)&&players.get(h).n)||'—')+(h===pid?'（我）':'');
+  var out='';
+  arr.forEach(function(p,idx){
+    out+='<div class="pl"><span class="dot"></span><span>'+esc(p.n)+'</span>'
+       + (p.id===h?'<span class="tag">莊家</span>':'')
+       + (p.id===pid?'<span class="tag mine">我</span>':'')+'</div>';
+  });
+  $('players').innerHTML=out||'<div class="pl">（只有我）</div>';
+}
+function prunePlayers(){
+  var now=Date.now();
+  players.forEach(function(p,id){ if(id!==pid && now-p.last>DEAD_MS) players.delete(id); });
+  var h=isHost();
+  if(wasHost===false && h===true){       /* 我接手莊家 → 把剛剛莊家的分數帶過來 */
+    if(lastPeerState && now-lastPeerState.ts<120000){ credit=lastPeerState.credit; renderCredit(); }
+    log('<span class="w">我接手莊家</span>（之後的開獎與分數以我為準）');
+  }
+  if(wasHost===true && h===false){       /* 別人接手 → 分數以後由他廣播 */
+    var hp=players.get(hostId());
+    log('莊家換人：'+(hp&&hp.n?esc(hp.n):'下一位')+' 接手');
+  }
+  wasHost=h;
+  renderPlayers();
+}
+setInterval(prunePlayers,2500);
+
+var logLines=[];
+function log(html){
+  var d=new Date(), t=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2);
+  logLines.unshift('<div>'+t+' '+html+'</div>');
+  if(logLines.length>60) logLines.pop();
+  $('log').innerHTML=logLines.join('');
+}
+function flash(txt){ var e=$('result'); e.className='result'; e.textContent=txt; }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function beep(n){
+  try{
+    var A=window.AudioContext||window.webkitAudioContext; if(!A) return;
+    var ac=beep.ac||(beep.ac=new A());
+    var o=ac.createOscillator(), g=ac.createGain();
+    o.type='square'; o.frequency.value=(n===2?880:520);
+    g.gain.value=0.06; o.connect(g); g.connect(ac.destination);
+    o.start(); setTimeout(function(){ o.stop(); },n===2?420:130);
+  }catch(e){}
+}
+
+/* 起始畫面 */
+(function(){ for(var i=0;i<9;i++) setCell(i,SYM[Math.floor(Math.random()*SYM.length)]); })();
+players.set(pid,{n:myName,t0:t0,last:Date.now()});
+renderPlayers(); renderCredit(); renderStats();
+log('連線測試版 v0 啟動（房間 '+esc(ROOM)+'）');
+connect();
+}
+</script>
+</body>
+</html>
