@@ -98,6 +98,14 @@
              color:rgba(20,20,15,.30); text-shadow:0 0 .5px rgba(20,20,15,.3)}
   .reel .sym.lit{color:var(--ink); background:rgba(255,255,255,.45);
                  box-shadow:inset 0 0 0 1px rgba(20,20,15,.25); text-shadow:0 0 .6px rgba(20,20,15,.5)}
+  /* ── 連線版卡片（跨兩欄、位在兩台機台下方） ── */
+  .games .wide{grid-column:1/-1}
+  .conn{display:flex; align-items:center; justify-content:center; gap:12px; padding:14px 10px}
+  .mini{background:linear-gradient(180deg,#cfccbd,#b6b3a4); border-radius:6px; padding:6px 7px;
+        box-shadow:inset 0 0 14px rgba(0,0,0,.35), 0 0 0 3px #1c1d1e; display:flex; gap:5px}
+  .mini img{width:22px; height:22px; object-fit:contain; background:rgba(255,255,255,.5); border-radius:4px; padding:1px}
+  .bar{height:3px; border-radius:2px; flex:0 0 clamp(18px,6vw,56px);
+       background:repeating-linear-gradient(90deg, rgba(20,20,15,.55) 0 6px, transparent 6px 12px)}
   /* ── 琥比是誰 ── */
   .who{display:flex; gap:20px; align-items:center; flex-wrap:wrap; margin-top:22px}
   .who img{width:132px; height:132px; border-radius:12px; object-fit:cover;
@@ -211,9 +219,23 @@
       </div></div>
       <div class="go">開始玩 ▶</div>
     </a>
+
+    <a class="card wide" href="slot-online/">
+      <div class="tag soon">建置中</div>
+      <h2>琥比水果盤・連線版</h2>
+      <p>多人同房、共用同一台機台 —— 看得到別的玩家，也看得到誰中獎。這個位子先留給連線版，整備完成後會直接在這裡開玩。</p>
+      <div class="art"><div class="conn">
+        <div class="mini"><img src="slot/noto_emoji/西瓜.svg" alt=""><img src="slot/noto_emoji/星星.svg" alt=""><img src="slot/hoobe.gif" alt="琥比"></div>
+        <div class="bar"></div>
+        <div class="mini"><img src="slot/noto_emoji/柳橙.svg" alt=""><img src="slot/noto_emoji/鈴鐺.svg" alt=""><img src="slot/noto_emoji/櫻桃.svg" alt=""></div>
+        <div class="bar"></div>
+        <div class="mini"><img src="slot/noto_emoji/葡萄.svg" alt=""><img src="slot/noto_emoji/檸檬.svg" alt=""><img src="slot/noto_emoji/西瓜.svg" alt=""></div>
+      </div></div>
+      <div class="go">敬請期待 ▶</div>
+    </a>
   </section>
 
-  <div class="tip">小提醒：盤面是照大螢幕排的 —— 電腦按 <b>Ctrl ＋ ／ －</b>、手機平板用雙指縮放，把整個盤面調到剛好滿版最漂亮。</div>
+  <div class="tip">小提醒：輪盤盤面會<b>自動縮到滿版</b>。<b>電腦</b>玩效果最完整（也可用 Ctrl ＋／－ 微調）；手機、平板適合預覽嚐鮮，可雙指放大看細節。</div>
 
   <section class="case who">
     <img src="assets/hubi.jpg" alt="琥比">
@@ -260,6 +282,14 @@ document.getElementById('cp').addEventListener('click', function(){
 (function(){
   var NS = 'hoobe-hubi', K_UV = 'visitors', K_PV = 'views';
   var API = 'https://abacus.jasoncameron.dev/';
+
+  /* 本機檢查版面時不要計數 —— 免得自己開頁面把「累計人次」養大（2026-09-30 補） */
+  if (/^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname)) {
+    document.getElementById('visitorBox').hidden = false;
+    document.getElementById('pvNum').textContent = '本機';
+    document.getElementById('uvNum').textContent = '預覽';
+    return;
+  }
 
   function read(k){
     return fetch(API + 'get/' + NS + '/' + k)
