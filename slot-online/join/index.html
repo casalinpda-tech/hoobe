@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>申請加入連線 — 琥比水果盤・連線版</title>
-<meta name="description" content="申請加入 HOOBE 琥比水果盤連線版：填寫稱呼與信箱，核准後會寄出連線邀請。">
+<meta name="description" content="申請加入 HOOBE 琥比水果盤連線版：填寫申請表，確認後會寄出連線邀請。">
 <meta property="og:title" content="申請加入連線 — 琥比水果盤・連線版">
 <meta property="og:image" content="https://casalinpda-tech.github.io/hoobe/assets/hubi.jpg">
 <link rel="icon" href="../../assets/hub.gif">
@@ -33,30 +33,23 @@
     box-shadow:0 24px 50px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.5);
   }
   h1{margin:0 0 10px; font-size:23px; letter-spacing:2px}
+  h2{margin:22px 0 8px; font-size:15px; letter-spacing:1px; color:#dfe3e4}
   p{margin:0 0 12px; color:#b6bcbe; font-size:14.5px; line-height:1.9}
   .lede{color:#dfe3e4}
   .note{background:rgba(255,255,255,.045); border-left:3px solid var(--gold); border-radius:8px;
         padding:12px 14px; color:#cfd4d6; font-size:13.5px; line-height:1.9; margin:0 0 16px}
   .note b{color:#f0f3f3}
-  label{display:block; font-size:13px; color:#9aa0a3; letter-spacing:1px; margin:14px 0 6px}
-  input{
-    width:100%; padding:11px 12px; border-radius:9px; font-size:15px;
-    background:#0e1013; color:#e7eaea; border:1px solid var(--line);
-    font-family:inherit;
-  }
-  input:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(47,184,168,.15)}
-  .btn{display:inline-block; margin-top:20px; width:100%; text-align:center; cursor:pointer;
-       text-decoration:none; font-size:15px; font-weight:700; letter-spacing:1px; font-family:inherit;
-       color:#0d1f1d; background:linear-gradient(180deg,#4fd0c0,#2fb8a8); padding:12px 22px; border:none; border-radius:9px;
+  ol.steps{margin:0 0 4px; padding-left:22px; color:#cfd4d6; font-size:14px; line-height:2.1}
+  ol.steps a{color:var(--teal); text-decoration:none}
+  ol.steps a:hover{text-decoration:underline}
+  .btn{display:inline-block; margin-top:18px; text-decoration:none; text-align:center;
+       font-size:15px; font-weight:700; letter-spacing:1px;
+       color:#0d1f1d; background:linear-gradient(180deg,#4fd0c0,#2fb8a8); padding:13px 26px; border-radius:9px;
        box-shadow:0 6px 16px rgba(47,184,168,.25)}
   .btn:hover{filter:brightness(1.08)}
-  .btn[disabled]{opacity:.55; cursor:default; filter:none}
   .btn2{display:inline-block; margin:16px 0 0; text-decoration:none; font-size:13.5px; letter-spacing:1px;
         color:#dfe3e4; background:#2b2d2e; border:1px solid var(--line); border-radius:9px; padding:11px 18px}
   .btn2:hover{border-color:var(--teal); color:var(--teal)}
-  .msg{margin-top:16px; border-radius:9px; padding:12px 14px; font-size:14px; line-height:1.9; display:none}
-  .msg.ok{display:block; background:rgba(47,184,168,.12); box-shadow:inset 0 0 0 1px rgba(47,184,168,.5); color:#d6f4ef}
-  .msg.err{display:block; background:rgba(179,32,42,.14); box-shadow:inset 0 0 0 1px rgba(179,32,42,.55); color:#f6d9db}
   footer{margin-top:22px; color:#8d9395; font-size:12.5px; line-height:2; text-align:center}
 </style>
 </head>
@@ -65,25 +58,22 @@
   <a class="back" href="../">← 回連線版說明</a>
   <section class="case">
     <h1>申請加入連線</h1>
-    <p class="lede">填好之後送出，我們會把連線邀請寄到你的信箱。收到信、按一次接受，你的裝置就會加入我們家的私人網路（Tailscale），之後就能一起玩同一台機台。</p>
+    <p class="lede">填好申請表送出，我們確認之後會寄一封連線邀請到你的信箱。收到信、按一次接受，你的裝置就加入我們家的私人網路（Tailscale），之後就能一起玩同一台機台。</p>
 
     <div class="note">
       你會加入的是<b>只有這台遊戲主機</b>的分享 —— 看不到我們家其他電腦，也不能主動連進我們家。<br>
-      這台主機平常不一定開著，收到邀請後請保留那封信，之後想玩再打開就行。
+      這台主機不一定開著，收到邀請後請把那封信留著，想玩再打開就行。
     </div>
 
-    <div id="formArea" style="display:none;">
-      <label for="fName">你的稱呼（會顯示在遊戲畫面上，最多 8 個字）</label>
-      <input id="fName" type="text" maxlength="8" placeholder="例如：小賀">
+    <h2>申請前請先做一件事</h2>
+    <ol class="steps">
+      <li>在要玩的裝置上安裝 <a href="https://tailscale.com/download" target="_blank" rel="noopener">Tailscale</a>（免費），並登入你自己的帳號。</li>
+      <li>填下面的申請表（稱呼、電子信箱、通關密語）。</li>
+      <li>收到邀請信後按一次接受，就可以連進來玩了。</li>
+    </ol>
 
-      <label for="fEmail">電子信箱（邀請會寄到這裡）</label>
-      <input id="fEmail" type="email" placeholder="you@example.com">
-
-      <label for="fPass">通關密語</label>
-      <input id="fPass" type="text" placeholder="跟我們問一下">
-
-      <button class="btn" id="sendBtn">送出申請 ▶</button>
-      <div class="msg" id="msg"></div>
+    <div id="applyArea" style="display:none;">
+      <a class="btn" id="applyBtn" href="#" target="_blank" rel="noopener">填寫申請表 ▶</a>
     </div>
 
     <div id="closedArea" style="display:none;">
@@ -96,60 +86,18 @@
 
 <script>
 /* ─────────────────────────────────────────────────────────
-   申請表單端點：Google Apps Script 部署後的 Web App 網址
-   設定方式見 ./setup/README.md（設定好之後把網址貼在下面這行）
+   申請表網址：把 Google 表單的「傳送 → 連結」貼在下面這行
+   （作法見 ./setup/README.md 最前面的「最快路徑」）
    ───────────────────────────────────────────────────────── */
-var APPLY_ENDPOINT = '';
+var FORM_URL = '';
 
 (function () {
-  var formArea = document.getElementById('formArea');
+  var applyArea = document.getElementById('applyArea');
   var closedArea = document.getElementById('closedArea');
-  var msg = document.getElementById('msg');
-  var sendBtn = document.getElementById('sendBtn');
 
-  if (!APPLY_ENDPOINT) { closedArea.style.display = 'block'; return; }
-  formArea.style.display = 'block';
-
-  function show(kind, text) {
-    msg.className = 'msg ' + kind;
-    msg.innerHTML = text;
-  }
-
-  sendBtn.addEventListener('click', function () {
-    var name = document.getElementById('fName').value.trim();
-    var email = document.getElementById('fEmail').value.trim();
-    var pass = document.getElementById('fPass').value.trim();
-
-    if (!name) { show('err', '請先填稱呼。'); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { show('err', '信箱看起來不太對，請再檢查一次。'); return; }
-
-    sendBtn.disabled = true;
-    sendBtn.textContent = '送出中…';
-    show('ok', '處理中，請稍等幾秒…');
-
-    /* 用 text/plain 送出，避免 CORS preflight；Apps Script 讀 e.postData.contents */
-    fetch(APPLY_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ name: name, email: email, pass: pass })
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        if (d && d.ok) {
-          show('ok', d.message || '申請已送出，請去收信。');
-          sendBtn.style.display = 'none';
-        } else {
-          show('err', (d && d.message) || '申請沒有成功，請稍後再試。');
-          sendBtn.disabled = false;
-          sendBtn.textContent = '送出申請 ▶';
-        }
-      })
-      .catch(function () {
-        show('err', '連線申請通道失敗，請稍後再試，或直接跟小賀說一聲。');
-        sendBtn.disabled = false;
-        sendBtn.textContent = '送出申請 ▶';
-      });
-  });
+  if (!FORM_URL) { closedArea.style.display = 'block'; return; }
+  document.getElementById('applyBtn').href = FORM_URL;
+  applyArea.style.display = 'block';
 })();
 </script>
 </body>
