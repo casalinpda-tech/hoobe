@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>琥比水果盤・連線版 — HOOBE 琥比遊戲間</title>
-<meta name="description" content="HOOBE 琥比水果盤連線版：多人同房、共用一台機台的線上版水果盤。需搭配主持人（家裡的樹莓派）在線。">
+<meta name="description" content="HOOBE 琥比水果盤連線版：功能、介面與單機版大同小異，多人同時在線一起競爭拉主機上不停跳動的琥比積分。需先申請加入連線，並在主機在線時才能玩。">
 <meta property="og:title" content="琥比水果盤・連線版">
-<meta property="og:description" content="多人同房、共用一台機台的線上版水果盤。需搭配主持人在線。">
+<meta property="og:description" content="多人同時在線玩水果盤，一起競爭拉主機上不停跳動的琥比積分，增進遊戲樂趣。欲加入連線版者請先申請加入連線。">
 <meta property="og:image" content="https://casalinpda-tech.github.io/hoobe/assets/hubi.jpg">
 <link rel="icon" href="../assets/hub.gif">
 <style>
@@ -77,8 +77,9 @@
   <a class="back" href="../">← 回琥比遊戲間</a>
   <section class="case">
     <div class="tag">可以玩了</div>
-    <h1>琥比水果盤・連線版</h1>
-    <p class="lede">多人同房、共用同一台機台 —— 看得到別的玩家，也看得到誰中獎。</p>
+    <h1>琥比水果盤・連線版<span data-mp-lamp>◎ OFFLINE</span></h1>
+    <div class="mpsub" data-mp-sub>（查詢主機狀態…）</div>
+    <p class="lede">連線版功能、介面與單機版大同小異，多人同時在線玩水果盤遊戲，並一起競爭拉主機上不停跳動的琥比積分，增進遊戲樂趣；欲加入連線版遊戲者，請先申請加入連線(※我個人專用於琥比連線版水果盤的Tailscale私人網路)，我會儘快回復您。</p>
 
     <div class="art">
       <div class="mini"><img src="../slot/noto_emoji/西瓜.svg" alt=""><img src="../slot/noto_emoji/星星.svg" alt=""><img src="../slot/hoobe.gif" alt="琥比"></div>
@@ -89,10 +90,11 @@
     </div>
 
     <p class="note">
-      這一版<b>需要「主持人」在線</b>才能玩。<br>
-      規則統一由主持人派發 —— 十字、交叉、全盤、琥比全盤、滿天星安慰獎，全部是主持人說了算，
-      不是自己的電腦自己在開獎。所以只要主持人沒開，進遊戲會看到「伺服器連線中斷」，那是正常的。<br>
-      這個連線版是<b>為家人團聚而做的</b>：同一個房、同一台機台、共用同一個積分池。
+      <b>這一版需要「主機」在線ONLINE才能玩。</b><br>
+      遊戲及規則統一由主機派發 —— 十字、交叉、全盤、琥比全盤、滿天星安慰獎，全部由主機隨機開出，
+      不是由自己電腦開獎。如果主機關機OFFLINE期間，遊戲會呈現「伺服器連線中斷」。<br>
+      這個連線版同一台機台、同一個積分池，是專為我的家人及親友而設，也會視主機負載情形，
+      適度開放部分網友參加，初期原則最多20人同時在線，以後會視狀況評估調整。
     </p>
 
     <a class="btn" href="./join/">申請加入連線 ▶</a>
@@ -107,5 +109,6 @@
   </section>
   <footer>HOOBE　琥比遊戲間 —— 為紀念琥比而做。</footer>
 </div>
+<script src="../assets/mp-status.js"></script>
 </body>
 </html>
