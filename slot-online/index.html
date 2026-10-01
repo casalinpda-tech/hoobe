@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>琥比水果盤・連線版 — HOOBE 琥比遊戲間</title>
-<meta name="description" content="HOOBE 琥比水果盤連線版：多人同房、共用一台機台的線上版水果盤（建置中）。">
+<meta name="description" content="HOOBE 琥比水果盤連線版：多人同房、共用一台機台的線上版水果盤。需搭配主持人（家裡的樹莓派）在線。">
 <meta property="og:title" content="琥比水果盤・連線版">
-<meta property="og:description" content="多人同房、共用一台機台的線上版水果盤（建置中）。">
+<meta property="og:description" content="多人同房、共用一台機台的線上版水果盤。需搭配主持人在線。">
 <meta property="og:image" content="https://casalinpda-tech.github.io/hoobe/assets/hubi.jpg">
 <link rel="icon" href="../assets/hub.gif">
 <style>
@@ -56,6 +56,7 @@
   .bar{height:3px; border-radius:2px; flex:0 0 34px; background:repeating-linear-gradient(90deg, rgba(20,20,15,.55) 0 6px, transparent 6px 12px)}
   .note{background:rgba(255,255,255,.045); border-left:3px solid var(--gold); border-radius:8px;
         padding:12px 14px; color:#cfd4d6; font-size:13.5px; line-height:1.9}
+  .note b{color:#f0f3f3}
   .btn{display:inline-block; margin-top:16px; text-decoration:none; font-size:14px; font-weight:700; letter-spacing:1px;
        color:#0d1f1d; background:linear-gradient(180deg,#4fd0c0,#2fb8a8); padding:11px 22px; border-radius:9px;
        box-shadow:0 6px 16px rgba(47,184,168,.25)}
@@ -63,6 +64,11 @@
   .btn2{display:inline-block; margin:16px 0 0 10px; text-decoration:none; font-size:13.5px; letter-spacing:1px;
         color:#dfe3e4; background:#2b2d2e; border:1px solid var(--line); border-radius:9px; padding:11px 18px}
   .btn2:hover{border-color:var(--teal); color:var(--teal)}
+  .hosts{margin:14px 0 0; padding:0; list-style:none; font-size:13px; color:#9aa0a3; line-height:2.1}
+  .hosts li{display:flex; gap:8px; align-items:baseline}
+  .hosts .k{flex:0 0 68px; color:#7f8688; letter-spacing:1px}
+  .hosts a{color:var(--teal); text-decoration:none}
+  .hosts a:hover{text-decoration:underline}
   footer{margin-top:22px; color:#8d9395; font-size:12.5px; line-height:2; text-align:center}
 </style>
 </head>
@@ -70,7 +76,7 @@
 <div class="wrap">
   <a class="back" href="../">← 回琥比遊戲間</a>
   <section class="case">
-    <div class="tag">建置中</div>
+    <div class="tag">可以玩了</div>
     <h1>琥比水果盤・連線版</h1>
     <p class="lede">多人同房、共用同一台機台 —— 看得到別的玩家，也看得到誰中獎。</p>
 
@@ -82,14 +88,24 @@
       <div class="mini"><img src="../slot/noto_emoji/葡萄.svg" alt=""><img src="../slot/noto_emoji/檸檬.svg" alt=""><img src="../slot/noto_emoji/西瓜.svg" alt=""></div>
     </div>
 
-    <p class="note">這個位子先留給連線版，目前還在整備中。<br>
-      整備完成後，這裡會直接開玩 —— 免安裝、免註冊，開網址就能跟別人同一房。</p>
+    <p class="note">
+      這一版<b>需要「主持人」在線</b>才能玩。<br>
+      規則統一由主持人派發 —— 十字、交叉、全盤、琥比全盤、滿天星安慰獎，全部是主持人說了算，
+      不是自己的電腦自己在開獎。所以只要主持人沒開，進遊戲會看到「伺服器連線中斷」，那是正常的。<br>
+      這個連線版是<b>為家人團聚而做的</b>：同一個房、同一台機台、共用同一個積分池。
+    </p>
 
-    <a class="btn" href="../slot/">先玩單機版 ▶</a>
-    <a class="btn2" href="../roulette/">去玩完整版輪盤</a>
+    <a class="btn" href="http://100.76.183.82:3000">進入遊戲（外網） ▶</a>
+    <a class="btn2" href="http://192.168.50.163:3000">家裡區網</a>
+
+    <ul class="hosts">
+      <li><span class="k">外網</span><a href="http://100.76.183.82:3000">http://100.76.183.82:3000</a></li>
+      <li><span class="k">區網</span><a href="http://192.168.50.163:3000">http://192.168.50.163:3000</a></li>
+      <li><span class="k">使用前</span>裝置需安裝並登入 Tailscale（我們家自己的私人網路），沒加入就連不上。</li>
+      <li><span class="k">建議</span>用電腦開，效果最完整；手機平板只是預覽。</li>
+    </ul>
   </section>
   <footer>HOOBE　琥比遊戲間 —— 為紀念琥比而做。</footer>
 </div>
-<!-- 給隔壁台（水果盤專員）：交接說明在 ./handoff.txt；主檔直接覆蓋本頁 index.html 即可，資源檔放同一層。 -->
 </body>
 </html>
