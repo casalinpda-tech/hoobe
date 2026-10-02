@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>琥比水果盤・連線版 ── 操作筆記</title>
+<style>
+  :root{ --ink:#14181b; --mid:#4a5459; --line:#d8dee2; --teal:#1a8f83; --gold:#9a7b12; --bg:#fbfcfc; --warn:#b3261e; }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;
+    font-size:17px; line-height:1.85; padding:26px 20px 80px;
+  }
+  .wrap{max-width:820px; margin:0 auto}
+  h1{font-size:26px; margin:0 0 4px; letter-spacing:1px}
+  .sub{color:var(--mid); font-size:14px; margin-bottom:26px}
+  h2{
+    font-size:20px; margin:38px 0 12px; padding:8px 0 8px 12px;
+    border-left:6px solid var(--teal); background:#eef7f6; letter-spacing:1px;
+  }
+  h3{font-size:17px; margin:22px 0 6px}
+  p{margin:0 0 10px}
+  ol,ul{margin:0 0 12px; padding-left:26px}
+  ol.big{counter-reset:step; list-style:none; padding-left:0}
+  ol.big > li{
+    counter-increment:step; position:relative;
+    background:#fff; border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px 14px 58px; margin:0 0 12px;
+  }
+  ol.big > li::before{
+    content:counter(step); position:absolute; left:14px; top:13px;
+    width:30px; height:30px; border-radius:50%;
+    background:var(--teal); color:#fff; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  code{background:#eef1f3; padding:2px 6px; border-radius:5px; font-size:15px;
+       font-family:"Courier New",monospace; word-break:break-all}
+  .box{background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:12px 0}
+  .warn{background:#fdf3f2; border-color:#f0c9c6}
+  .warn b{color:var(--warn)}
+  .tip{background:#fffdf2; border-color:#ecdfa8}
+  table{width:100%; border-collapse:collapse; margin:10px 0 14px; background:#fff}
+  th,td{border:1px solid var(--line); padding:9px 11px; text-align:left; vertical-align:top}
+  th{background:#eef1f3; font-weight:700}
+  .k{color:var(--mid); font-size:15px}
+  .fill{background:#fff8cc; padding:1px 8px; border-radius:4px; font-weight:700}
+  hr{border:none; border-top:1px dashed var(--line); margin:34px 0}
+  @media print{ body{font-size:15px} h2{background:none; border-left-width:5px} ol.big>li{break-inside:avoid} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>琥比水果盤・連線版 ── 操作筆記</h1>
+<div class="sub">最後更新 2026-10-02　·　這份是給小賀自己看的，忘掉的時候翻這裡就好</div>
+
+<div class="box tip">
+<b>先記這一句就好：</b>有人申請 → 你只要做「<b>收到信 → 後台按一下 Share → 通知對方收信</b>」三步。
+其他都是對方自己會做的事。
+</div>
+
+<h2>一、平常只有一件事要做：有人申請的時候</h2>
+
+<ol class="big">
+  <li><b>收到 Google 通知信</b><br>
+      主旨大概是「<b>申請加入琥比水果盤・連線版（回應）</b>」。<br>
+      信裡會有對方填的：稱呼、電子信箱、通關密語。<br>
+      <span class="k">（密語不對就不要理他；信沒收到就去垃圾信匣找）</span></li>
+
+  <li><b>去 Tailscale 後台，把那台主機分享給他</b><br>
+      開 <code>https://login.tailscale.com/admin/machines</code><br>
+      找到「<b>hoobe-sever</b>」那一列 → 最右邊的「<b>⋯</b>」→ 選「<b>Share</b>」<br>
+      → 在「<b>Share by email</b>」那格填<b>他的電子信箱</b> → 按「<b>Share</b>」送出</li>
+
+  <li><b>另外跟對方講一聲「邀請寄出去了，去收信」</b><br>
+      那封信是 <b>Tailscale 寄的</b>（不是你寄的），很多人沒注意到，會一直卡著。<br>
+      記得提醒他看<b>垃圾信匣</b>。</li>
+</ol>
+
+<h2>二、對方自己要做的（你不用管，但他卡住時可以唸給他聽）</h2>
+<ol>
+  <li>先到 <code>https://tailscale.com</code> 用<b>同一個信箱</b>登入註冊（免費、一分鐘、不用設定什麼）</li>
+  <li>填我們的申請表</li>
+  <li>收到邀請信，按「接受」</li>
+  <li>就能用這個網址玩：<code>http://hoobe-sever.<span class="fill">你的網路名稱</span>.ts.net:3000</code></li>
+</ol>
+<p class="k">※「你的網路名稱」忘了的話：在樹莓派跑 <code>tailscale status --json | head -40</code>，看 <code>DNSName</code> 那一行。</p>
+
+<h2>三、三種卡住的情況怎麼處理</h2>
+<table>
+  <tr><th style="width:32%">症狀</th><th>怎麼判斷</th><th>怎麼處理</th></tr>
+  <tr>
+    <td>沒收到通知信</td>
+    <td>先看垃圾信匣；再開表單的「<b>回覆</b>」分頁看有沒有那筆</td>
+    <td>· 有回應、沒收到信 → 通知開關沒開（表單「回覆」→ 右上「⋮」→ 開啟通知）<br>
+        · 連回應都沒有 → 對方根本沒送出，請他重填</td>
+  </tr>
+  <tr>
+    <td>對方說「點邀請沒反應，或叫我註冊」</td>
+    <td>他還沒註冊 Tailscale</td>
+    <td>請他先去 <code>tailscale.com</code> 用同一個信箱註冊好，再點一次邀請連結</td>
+  </tr>
+  <tr>
+    <td>對方說「進不去遊戲」</td>
+    <td>一個一個查</td>
+    <td>① 主機沒開？看網站上那顆燈是不是 <b>◉ ONLINE</b>（灰的就代表主機離線）<br>
+        ② 他 Tailscale 沒登入／沒裝<br>
+        ③ 邀請過期了（<b>未使用 30 天會失效</b>）→ 重新 Share 一次</td>
+  </tr>
+</table>
+
+<h2>四、千萬不要做的事</h2>
+<div class="box warn">
+<b>① 不要用「Users → Invite external user」</b><br>
+那是「邀請他<b>加入我的網路成為成員</b>」，對方會看得到你家<b>所有</b>裝置（包括你那台 Windows 電腦）。<br>
+要只給他一台主機的權限，一律走：<b>Machines → hoobe-sever → ⋯ → Share</b>。<br>
+（Tailscale 自己在 Invite 對話框裡也這樣寫：只想給一台機器，請改用 share the machine。）
+</div>
+<div class="box warn">
+<b>② 不要把任何金鑰、密碼寫在會公開的地方</b><br>
+這個網站是公開的。樹莓派的密碼、以後做全自動會用到的 API 金鑰，都只留在你自己的電腦上。
+</div>
+
+<h2>五、常用位址（建議放瀏覽器書籤）</h2>
+<table>
+  <tr><th style="width:34%">用途</th><th>位址</th></tr>
+  <tr><td>連線版說明頁（給別人看的）</td><td><code>https://casalinpda-tech.github.io/hoobe/slot-online/</code></td></tr>
+  <tr><td>申請表（自己看回應）</td><td>Google 表單 →「回覆」分頁<br><span class="k">表單編輯網址在你的 Google 表單清單裡</span></td></tr>
+  <tr><td>Tailscale 後台（核准分享）</td><td><code>https://login.tailscale.com/admin/machines</code></td></tr>
+  <tr><td>遊戲（主機在線時才開得起來）</td><td><code>http://hoobe-sever.<span class="fill">你的網路名稱</span>.ts.net:3000</code></td></tr>
+</table>
+<p class="k">※ 樹莓派的連線方式、密碼、IP 這些，我另外放在你電腦桌面上的一份檔案裡（不放在公開網站）。</p>
+
+<h2>六、出問題的時候</h2>
+<p>直接跟 AI 說一句「<b>上次到哪</b>」就可以，我會自己去翻紀錄接上。你也可以順手說：</p>
+<ul>
+  <li>「燈不亮」<span class="k">（主機可能沒開，或心跳停了）</span></li>
+  <li>「有人申請但我沒收到信」<span class="k">（通知開關）</span></li>
+  <li>「某某說進不去」<span class="k">（分享或邀請過期）</span></li>
+  <li>「我想改誰的權限」<span class="k">（Revoke 或重新 Share）</span></li>
+</ul>
+
+<hr>
+<div class="k">
+　　琥比遊戲間　為紀念琥比而做。<br>
+　　這一版是連線版的操作筆記；建置／維護的技術細節在 <code>setup/README.md</code>。
+</div>
+
+</div>
+</body>
+</html>
