@@ -9,7 +9,7 @@
      4. Abacus 心跳桶           ─ 公開站唯一查得到的方式，也不洩漏主機位址：
                                   主機每 5 分鐘打一次 hit/hoobe-hubi/hk-<時間桶>
 
-   查不到一律顯示 OFFLINE（灰）—— 不謊報在線；查詢中顯示「⋯」。
+   查不到一律顯示 OFFLINE（亮紅，2026-10-03 由使用者指示：灰色不夠醒目）—— 不謊報在線；查詢中顯示「⋯」。
    本機（localhost）預覽固定顯示「本機預覽」，完全不對外查詢。
    關掉自動查詢：window.HOOBE_STATUS_OFF = true
 ─────────────────────────────────────────────────────────────────────────── */
@@ -37,6 +37,8 @@
     '.mplamp.on{color:#062e29; background:linear-gradient(180deg,#5fe0cf,#2fb8a8);' +
       'box-shadow:0 0 14px rgba(47,184,168,.45), inset 0 0 0 1px rgba(255,255,255,.35)}' +
     '.mplamp.na{color:#c9a227; background:rgba(201,162,39,.10); box-shadow:inset 0 0 0 1px rgba(201,162,39,.35)}' +
+    '.mplamp.off{color:#fff; background:linear-gradient(180deg,#ff6a5e,#d81600);' +
+      'box-shadow:0 0 16px rgba(216,22,0,.6), inset 0 0 0 1px rgba(255,255,255,.40)}' +
     '.mpsub{display:block; margin:7px 0 0; font:11.5px/1.6 "Courier New",monospace; color:#7f8688; letter-spacing:.5px}';
   document.head.appendChild(st);
 
