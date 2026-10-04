@@ -134,9 +134,12 @@
 <div class="box gold">
   <span class="t">★ 連不上時，先看那顆燈，就對了</span>
   <b>◉ ONLINE（綠亮）</b> → 主機活著，問題在對方那邊（請他檢查自己的 Tailscale 有沒有登入）<br>
-  <b>◎ OFFLINE（灰）</b> → 主機沒在跑 → 用 SSH 進樹莓派打這一行：<br>
+  <b>◎ OFFLINE（亮紅）</b> → 主機沒在跑 → 用 SSH 進樹莓派，<b>用 screen 啟動</b>（很重要）：<br>
+  <code>screen -S server</code><br>
   <code>cd ~/hoobe-game/server &amp;&amp; node server.js</code><br>
-  <span class="sub">（樹莓派的密碼、完整指令，在桌面那份「連線版_常用位址與密碼.txt」）</span>
+  <code>（按 Ctrl+A 再按 D 脫離）</code><br>
+  <span class="sub">⚠️ 一定要用 screen：直接跑的話，SSH 一斷（電腦睡眠、網路跳一下、關視窗）主機就死，
+  玩家全部斷線、燈就轉紅。<br>（樹莓派的密碼、完整指令，在桌面那份「連線版_常用位址與密碼.txt」）</span>
 </div>
 
 <table>
