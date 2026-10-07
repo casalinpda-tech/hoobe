@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸運翻牌 - 撲克牌遊戲</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0d5c2e;
+            background: radial-gradient(ellipse at center, #0f6b3a 0%, #0a4520 50%, #053510 100%);
+            font-family: 'Noto Sans TC', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin-bottom: 5px;
+            gap: 60px;
+        }
+
+        .game-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 85px;
+        }
+
+        .header-middle {
+            display: flex;
+            justify-content: center;
+        }
+
+        .paytable {
+            width: 304px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            padding: 8px;
+        }
+
+        .balance-display, .bet-display {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            color: #ffd700;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+            border: 1px solid #ffd700;
+            box-shadow: 0 2px 8px rgba(255,215,0,0.2);
+            min-width: 143px;
+        }
+
+        .balance-display span, .bet-display span {
+            color: #fff;
+        }
+
+        .result-display {
+            display: block;
+            text-align: center;
+            min-height: 1.7rem;
+            margin-bottom: 6px;
+        }
+
+        .result-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .result-text.win {
+            color: #2ecc71;
+        }
+
+        .result-text.lose {
+            color: #e63946;
+        }
+
+        .result-text.info {
+            color: #dfe6f5;
+            font-size: 0.95rem;
+            font-weight: normal;
+            text-shadow: 0 0 6px rgba(0,0,0,0.6);
+        }
+
+        .header-middle {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .jackpot-display {
+            background: linear-gradient(145deg, #ff6b35, #f7931e);
+            padding: 8px 30px;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+            min-width: 416px;
+            margin-top: 50px;
+        }
+
+        /* 魏碑體（王漢宗中魏碑體 / HanWang WeiBeiMedium，GPL v2）— 專門拿來排「五鬼牌」三個字。
+           字檔已用 fontTools 子集化成 25 個字、只有 5.7KB，並以 base64 內嵌在這裡 → 單檔帶著走、file:// 開啟也一定載得到（外部檔案會被瀏覽器 CORS 擋）。 */
+        @font-face {
+            font-family: 'HanWangWeiBei';
+            src: url(data:font/woff2;base64,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) format('woff2');
+            font-display: swap;
+        }
+
+        .jackpot-label {
+            color: #fff;
+            font-family: 'HanWangWeiBei', 'Noto Sans TC', sans-serif;
+            font-weight: 400;
+            font-size: 2.05rem;
+            line-height: 1;
+            letter-spacing: 0.22em;
+            margin-right: -0.22em;      /* 補掉最後一個字右邊的 letter-spacing，讓三個字視覺置中 */
+            text-shadow: 1px 2px 3px rgba(0,0,0,0.55);
+            /* 中魏碑是「中等」字重，在橘底上偏細 → 描一點邊把筆畫撐厚，碑味比較足 */
+            -webkit-text-stroke: 0.6px currentColor;
+            /* 魏碑體本來就方正，再壓扁成「較扁平」的字形 */
+            display: inline-block;
+            transform: scaleY(0.7);
+            transform-origin: center center;
+            margin-bottom: -9px;
+        }
+
+        .jackpot-payout {
+            color: #ffd700;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .jackpot-win {
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: bold;
+            min-height: 1.5rem;
+        }
+
+        .jackpot-display.highlight {
+            animation: jackpotPulse 0.5s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(255,215,0,0.8);
+        }
+
+        @keyframes jackpotPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .cards-area {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            /* 146 x 219 = 2:3，與 cards/ 公版牌面（500x750）比例完全一致
+               → 牌圖能填滿整個牌位，不會在左右露出白邊（用戶 2026-10-07 反映的「外殼」） */
+            width: 146px;
+            height: 219px;
+            position: relative;
+            cursor: pointer;
+            perspective: 1000px;
+        }
+
+        .card .prize-display {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.7);
+            color: #ffd700;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            z-index: 5;
+            display: none;
+        }
+
+        .card.show-prize .prize-display {
+            display: block;
+        }
+
+        .card .hold-display {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(46, 204, 113, 0.9);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            z-index: 5;
+            display: none;
+        }
+
+        .card.held .hold-display {
+            display: block;
+        }
+
+        .card.held {
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.8);
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* 牌背：深藍底 + 極淡的斜織紋 + 金色雙框 + 中央金環 ◆（純 CSS，沒有外掛圖檔、不閃動）
+           2026-10-07 用戶反映舊的紅斜紋＋🃏 emoji 很醜 → 換成低對比、耐看的款式 */
+        .card-back {
+            background-color: #16324f;
+            background-image:
+                radial-gradient(ellipse at 50% 42%, rgba(88, 152, 214, 0.30), rgba(0,0,0,0) 70%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.055) 0 2px, rgba(0,0,0,0) 2px 11px),
+                repeating-linear-gradient(-45deg, rgba(255,255,255,0.055) 0 2px, rgba(0,0,0,0) 2px 11px);
+            border: 2px solid #c9a227;
+            box-shadow: inset 0 0 0 1px rgba(201,162,39,0.45), 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .card-back::before {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border: 1px solid rgba(201,162,39,0.55);
+            border-radius: 8px;
+        }
+
+        .card-back::after {
+            content: '◆';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid rgba(201,162,39,0.85);
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 36%, rgba(201,162,39,0.20), rgba(0,0,0,0) 72%);
+            color: rgba(226, 199, 121, 0.9);
+            font-size: 22px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.55);
+        }
+
+        .card-front {
+            background: #fff;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 6px;
+            border: 3px solid #ccc;
+            overflow: hidden;
+        }
+
+        /* 公版牌面（cards/*.png|webp）本身已是一張完整的牌（含牌框）→ 關掉 .card-front 的白底／內距／灰框，
+           否則牌圖四周會多出一圈外殼。手繪備援牌面不會加這個 class，仍走上面的 padding/border。 */
+        .card-front.pk-img {
+            padding: 0;
+            border: none;
+            background: transparent;
+        }
+
+        .card-front.red {
+            color: #c41e3a;
+        }
+
+        .card-front.black {
+            color: #1a1a2e;
+        }
+
+        .card-corner {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1;
+            z-index: 2;
+        }
+
+        .card-corner-bottom {
+            align-self: flex-end;
+            transform: rotate(180deg);
+        }
+
+        .card-corner .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .card-corner .suit {
+            font-size: 1.2rem;
+            margin-left: -2px;
+        }
+
+        .card-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: center;
+            width: 80%;
+            height: 70%;
+        }
+
+        .card-suit-small {
+            font-size: 2rem;
+            margin: 1px;
+            line-height: 1;
+        }
+
+        .card-face {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 85%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-face svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-face.pk {
+            top: 0;
+            left: 0;
+            transform: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-face.pk img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .card-face svg.face-svg {
+            display: block;
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.18));
+        }
+
+        .card-face-img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+
+        .card-joker {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 63%;
+            height: 60%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border-radius: 8px;
+            border: 2px solid #d4af37;
+            box-shadow: inset 0 0 0 1.5px rgba(212,175,55,0.45), 0 2px 6px rgba(0,0,0,0.10);
+        }
+
+        .card-joker-face {
+            width: 100%;
+            height: 100%;
+            background-image: url('hoobe.gif');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .card-joker-text {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .card-front.black {
+            color: #1a1a2e;
+        }
+
+        .card-front.joker {
+            background: #fff;
+            border-color: #d4af37;
+        }
+
+        .joker-corner {
+            align-items: flex-start;
+        }
+
+        .joker-word {
+            font-family: 'Cinzel', Georgia, serif;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #b8860b;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .bet-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 15px;
+            border-radius: 15px;
+        }
+
+        .bet-controls label {
+            color: #fff;
+            font-size: 0.85rem;
+        }
+
+        .bet-btn {
+            width: 28px;
+            height: 28px;
+            /* 白色滾邊（與投幣鍵同一個色），四顆主按鈕與押分鍵整排一致 */
+            border: 2px solid #fff3c4;
+            border-radius: 50%;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .bet-btn.minus {
+            background: #e63946;
+            color: #fff;
+        }
+
+        .bet-btn.plus {
+            background: #2ecc71;
+            color: #fff;
+        }
+
+        .bet-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .bet-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .bet-amount {
+            color: #ffd700;
+            font-size: 1rem;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .action-btn {
+            padding: 8px 25px;
+            /* 讓「換牌」(2 字) 不會比「開始遊戲」(4 字) 窄一截 → 四顆按鈕一樣寬 */
+            min-width: 120px;
+            font-size: 0.9rem;
+            /* 白色滾邊：四顆按鍵統一（與投幣鍵同一個色） */
+            border: 2px solid #fff3c4;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Noto Sans TC', sans-serif;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-btn.start {
+            background: linear-gradient(145deg, #ffd700, #ffaa00);
+            color: #1a1a2e;
+            box-shadow: 0 4px 20px rgba(255,215,0,0.4);
+        }
+
+        .action-btn.start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(255,215,0,0.6);
+        }
+
+        .action-btn.coin {
+            background: linear-gradient(145deg, #ffe08a, #e8b32a 55%, #b8860b);
+            color: #3a2600;
+            box-shadow: 0 0 0 3px rgba(0,0,0,0.18), 0 4px 16px rgba(255,224,138,0.45);
+        }
+
+        .action-btn.coin:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 0 3px rgba(0,0,0,0.18), 0 6px 24px rgba(255,224,138,0.75);
+        }
+
+        .action-btn.draw {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: #fff;
+        }
+
+        .action-btn.draw:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .paytable {
+            width: 180px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            padding: 8px;
+        }
+
+        .paytable-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* 三欄各自對正：固定欄寬的 grid。
+           舊版 flex + justify-content:space-between 會隨獎項名長度把「賠率」欄左右推，各列對不齊。 */
+        .paytable-item {
+            display: grid;
+            grid-template-columns: 1fr 44px 42px;
+            column-gap: 6px;
+            align-items: center;
+            padding: 2px 6px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid transparent;
+            border-radius: 3px;
+            color: #fff;
+            font-size: 0.65rem;
+        }
+
+        .paytable-item.highlight {
+            background: rgba(255,215,0,0.2);
+            border-color: #ffd700;
+        }
+
+        .paytable-item .payout {
+            color: #2ecc71;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .paytable-item .win-amount {
+            color: #ffd700;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes cardDeal {
+            0% { 
+                transform: translateY(-250px) rotate(-10deg);
+                opacity: 0;
+            }
+            100% { 
+                transform: translateY(0) rotate(0);
+                opacity: 1;
+            }
+        }
+
+        .card.dealing {
+            animation: cardDeal 0.4s ease-out forwards;
+        }
+
+        .card:nth-child(1) { animation-delay: 0s; }
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.2s; }
+        .card:nth-child(4) { animation-delay: 0.3s; }
+        .card:nth-child(5) { animation-delay: 0.4s; }
+
+        .hint {
+            text-align: center;
+            color: #cfe3d6;
+            font-size: 0.78rem;
+            line-height: 1.6;
+            margin: -6px auto 18px;
+            max-width: 720px;
+            opacity: 0.85;
+        }
+
+        .action-btn.help {
+            background: linear-gradient(145deg, #6b7a90, #46536a);
+            color: #fff;
+        }
+
+        .help-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.74);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 2000;
+        }
+
+        .help-modal.open {
+            display: flex;
+        }
+
+        .help-box {
+            position: relative;
+            background: #121a2c;
+            color: #eef2f8;
+            width: 100%;
+            max-width: 660px;
+            max-height: 86vh;
+            overflow-y: auto;
+            border: 1px solid #d4af37;
+            border-radius: 14px;
+            padding: 22px 26px 28px;
+            font-size: 0.86rem;
+            line-height: 1.85;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+        }
+
+        .help-box h2 {
+            color: #ffd700;
+            font-size: 1.1rem;
+            margin: 0 0 10px;
+        }
+
+        .help-box h3 {
+            color: #ffd700;
+            font-size: 0.95rem;
+            margin: 18px 0 6px;
+            border-left: 3px solid #d4af37;
+            padding-left: 8px;
+        }
+
+        .help-box ol, .help-box ul {
+            padding-left: 1.35em;
+        }
+
+        .help-box li {
+            margin-bottom: 5px;
+        }
+
+        .help-box table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+            margin-top: 4px;
+        }
+
+        .help-box table td {
+            padding: 4px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+
+        .help-box table td:nth-child(2) {
+            color: #ffd700;
+            font-weight: bold;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .help-box table td:nth-child(3) {
+            color: #2ecc71;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .help-note {
+            margin-top: 8px;
+            opacity: 0.85;
+        }
+
+        .help-close {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            background: none;
+            border: none;
+            color: #ffd700;
+            font-size: 1.15rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .particle {
+            position: absolute;
+            font-size: 2rem;
+            animation: fall 2s linear forwards;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="game-container">
+        <div class="game-header">
+            <div class="game-info">
+                <div class="balance-display">
+                    餘額: <span id="balance">1000</span>
+                </div>
+                <div class="bet-display">
+                    押分: <span id="betDisplay">100</span>
+                </div>
+            </div>
+
+            <div class="header-middle">
+                <div class="jackpot-display" id="jackpotDisplay">
+                    <span class="jackpot-label">五鬼牌</span>
+                    <span class="jackpot-payout">800x</span>
+                    <span class="jackpot-win"></span>
+                </div>
+            </div>
+
+            <div class="paytable">
+                <div class="paytable-list">
+                    <div class="paytable-item" data-prize="500">
+                        <span>同花大順</span>
+                        <span class="payout">500x</span>
+                        <span class="win-amount"></span>
+                    </div>
+                    <div class="paytable-item" data-prize="200">
+                        <span>5梅</span>
+                        <span class="payout">200x</span>
+                        <span class="win-amount"></span>
+                    </div>
+                    <div class="paytable-item" data-prize="120">
+                        <span>同花順</span>
+                        <span class="payout">120x</span>
+                        <span class="win-amount"></span>
+                    </div>
+                    <div class="paytable-item" data-prize="50">
+                        <span>鐵支</span>
+                        <span class="payout">50x</span>
+                        <span class="win-amount"></span>
+                    </div>
+                    <div class="paytable-item" data-prize="7">
+                        <span>葫蘆</span>
+                        <span class="payout">7x</span>
+                        <span class="win-amount"></span>
+                    </div>
+                    <div class="paytable-item" data-prize="5">
+                        <span>同花</span>
+                        <span class="payout">5x</span>
+                        <span class="win-amount"></span>
+                    </div>
+                    <div class="paytable-item" data-prize="3">
+                        <span>順子</span>
+                        <span class="payout">3x</span>
+                        <span class="win-amount"></span>
+                    </div>
+                    <div class="paytable-item" data-prize="2">
+                        <span>3條</span>
+                        <span class="payout">2x</span>
+                        <span class="win-amount"></span>
+                    </div>
+                    <div class="paytable-item" data-prize="1">
+                        <span>2對</span>
+                        <span class="payout">1x</span>
+                        <span class="win-amount"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-display" id="resultDisplay"></div>
+
+        <div class="cards-area" id="cardsArea">
+            <div class="card" data-index="0">
+                <div class="prize-display"></div>
+                <div class="hold-display">HOLD</div>
+                <div class="card-inner">
+                    <div class="card-back"></div>
+                    <div class="card-front"></div>
+                </div>
+            </div>
+            <div class="card" data-index="1">
+                <div class="prize-display"></div>
+                <div class="hold-display">HOLD</div>
+                <div class="card-inner">
+                    <div class="card-back"></div>
+                    <div class="card-front"></div>
+                </div>
+            </div>
+            <div class="card" data-index="2">
+                <div class="prize-display"></div>
+                <div class="hold-display">HOLD</div>
+                <div class="card-inner">
+                    <div class="card-back"></div>
+                    <div class="card-front"></div>
+                </div>
+            </div>
+            <div class="card" data-index="3">
+                <div class="prize-display"></div>
+                <div class="hold-display">HOLD</div>
+                <div class="card-inner">
+                    <div class="card-back"></div>
+                    <div class="card-front"></div>
+                </div>
+            </div>
+            <div class="card" data-index="4">
+                <div class="prize-display"></div>
+                <div class="hold-display">HOLD</div>
+                <div class="card-inner">
+                    <div class="card-back"></div>
+                    <div class="card-front"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="bet-controls">
+                <label>押分:</label>
+                <button class="bet-btn minus" id="betMinus">−</button>
+                <div class="bet-amount" id="betAmount">100</div>
+                <button class="bet-btn plus" id="betPlus">+</button>
+            </div>
+            <button class="action-btn start" id="startBtn">開始遊戲</button>
+            <button class="action-btn draw" id="drawBtn" disabled>換牌</button>
+            <button class="action-btn coin" id="coinBtn">投幣 +500</button>
+            <button class="action-btn help" id="helpBtn">玩法說明</button>
+        </div>
+        <div class="hint">玩法：押分 →「開始遊戲」→ 想留的牌按一下設 <b>HOLD</b> → 按「換牌」換掉沒 HOLD 的牌並結算（5 張全 HOLD＝不換牌直接結算）</div>
+
+
+    <div class="help-modal" id="helpModal">
+      <div class="help-box">
+        <button class="help-close" id="helpClose" aria-label="關閉">✕</button>
+        <h2>幸運翻牌 — 玩法說明</h2>
+
+        <h3>怎麼玩（4 步）</h3>
+        <ol>
+          <li>先調押分：按 <b>−／＋</b>，每次加減 10 分（10～1000 分）。分數不夠就按 <b>「投幣 +500」</b>。</li>
+          <li>按 <b>「開始遊戲」</b>：扣掉押分，發 5 張牌。</li>
+          <li>想留的牌，用滑鼠點一下牌面，會出現綠色 <b>HOLD</b> 標籤（代表保留）。不想留的就不要點，它等一下會被換掉。</li>
+          <li>按 <b>「換牌」</b>：沒 HOLD 的牌換成新牌，立刻結算。想留 5 張也可以（等於不換牌直接結算）。</li>
+        </ol>
+        <p class="help-note">中獎的分數會自動加到左上的「餘額」，右邊賠率表會亮起你中的那一列。想再玩就再按「開始遊戲」；分數不夠就按 <b>「投幣 +500」</b> 補分。</p>
+
+        <h3>牌型與賠率（以押 100 分為例）</h3>
+        <table>
+          <tr><td>同花大順（同花色的 10 J Q K A）</td><td>500x</td><td>50,000</td></tr>
+          <tr><td>5梅（同點數 5 張，含鬼牌湊成）</td><td>200x</td><td>20,000</td></tr>
+          <tr><td>同花順</td><td>120x</td><td>12,000</td></tr>
+          <tr><td>鐵支（四張同點數）</td><td>50x</td><td>5,000</td></tr>
+          <tr><td>葫蘆（三張同點數＋一對）</td><td>7x</td><td>700</td></tr>
+          <tr><td>同花（五張同花色）</td><td>5x</td><td>500</td></tr>
+          <tr><td>順子（五張連續點數）</td><td>3x</td><td>300</td></tr>
+          <tr><td>3條（三張同點數）</td><td>2x</td><td>200</td></tr>
+          <tr><td>2對</td><td>1x</td><td>100</td></tr>
+        </table>
+        <p class="help-note">「一對」以下不派彩（拿回 0 分）。</p>
+
+        <h3>鬼牌 JOKER</h3>
+        <ul>
+          <li>鬼牌是<b>萬用牌</b>，可以當成任何一張牌來湊牌型。</li>
+          <li>整副牌裡有 <b>2 張鬼牌</b>。</li>
+          <li><b>神秘加碼</b>：開牌時若出現 2 張鬼牌，有極低機率（<b>1/350</b>）會再補上 3 張鬼牌，
+              湊成「五鬼牌」直接拉下 <b>800x</b> 大獎（押 100 分＝80,000 分）。這時系統會自動幫你全部 HOLD，按「換牌」即可領獎。</li>
+        </ul>
+
+        <h3>記憶功能（關掉再開也接得上）</h3>
+        <ul>
+          <li>遊戲會<b>自動記住</b>你的餘額、押分、累計局數、投幣次數與最佳成績 — 關掉瀏覽器、甚至重開機都不會歸零。</li>
+          <li>所以不必每次從 0 開始：分數留著、局數一路累積，玩久了自然有機會碰到機率很低的大牌。</li>
+          <li>想整個重來：按 <b>F12</b> 打開瀏覽器 Console，輸入 <b>clearHupiSave()</b> 後按 Enter（隱藏指令，畫面上刻意不放按鈕）。</li>
+        </ul>
+
+        <h3>小提醒</h3>
+        <ul>
+          <li>每按一次「開始遊戲」就會先扣押分；餘額不足會顯示「餘額不足!」。</li>
+          <li>押分上限 1,000 分，中獎倍數最高 800x。</li>
+          <li>「投幣 +500」不限次數，純粹是補分用（沒有真的投錢）。</li>
+          <li>本遊戲為純娛樂，<b>積分沒有實際價值</b>，也不能兌換任何東西。</li>
+        </ul>
+      </div>
+    </div>
+    </div>
+
+    <script>
+        const suits = ['♠', '♥', '♣', '♦'];
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const joker = { isJoker: true, display: 'JOKER' };
+
+        // ── 鬼牌加碼（拉下積分）──
+        // 開牌若出現 2 張鬼牌，再以 1/JACKPOT_EXTRA_ODDS 的機率補上 3 張成 5 張鬼牌 → 800x
+        // 5 張牌出現 2 鬼的自然機率 ≈ 1/143 → 合計約 1/50000 開出一次
+        const JACKPOT_EXTRA_ODDS = 350;
+
+        // ── 記憶功能（localStorage）：餘額、押分、累計局數…，重開頁面／重開機都接得上 ──
+        // 目的：不要每次打開網頁都像重新來過 → 分數與局數累積著，玩久了自然有機會碰到低機率的大牌
+        const SAVE_KEY = 'hupiPoker.save.v1';
+        const DEFAULT_SAVE = {
+            balance: 1000, bet: 100, games: 0, coins: 0,
+            jackpots: 0, totalBet: 0, bestWin: 0
+        };
+
+        function loadSave() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (!raw) return { ...DEFAULT_SAVE };
+                return { ...DEFAULT_SAVE, ...JSON.parse(raw) };
+            } catch (e) {
+                return { ...DEFAULT_SAVE };
+            }
+        }
+        let save = loadSave();
+
+        function writeSave() {
+            save.balance = balance;
+            save.bet = bet;
+            try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {}
+        }
+
+        let balance = save.balance;
+        let bet = save.bet;
+        let currentCards = [];
+        let drawPile = [];
+        let gameInProgress = false;
+        let canDraw = false;
+        let heldCards = [false, false, false, false, false];
+
+        const balanceEl = document.getElementById('balance');
+        const betAmountEl = document.getElementById('betAmount');
+        const betDisplayEl = document.getElementById('betDisplay');
+        const betMinusBtn = document.getElementById('betMinus');
+        const betPlusBtn = document.getElementById('betPlus');
+        const startBtn = document.getElementById('startBtn');
+        const drawBtn = document.getElementById('drawBtn');
+        const coinBtn = document.getElementById('coinBtn');
+        const cardsArea = document.getElementById('cardsArea');
+        const resultDisplay = document.getElementById('resultDisplay');
+        const particlesContainer = document.getElementById('particles');
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'deal') {
+                const noise = audioCtx.createBufferSource();
+                const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.7, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < data.length; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.4));
+                }
+                noise.buffer = buffer;
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.15, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+                noise.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                noise.start(now);
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(60, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.7);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+                osc.start(now);
+                osc.stop(now + 0.7);
+            } else if (type === 'hold') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.setValueAtTime(800, now + 0.05);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'draw') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(500, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'win') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(523, now);
+                osc.frequency.setValueAtTime(659, now + 0.15);
+                osc.frequency.setValueAtTime(784, now + 0.3);
+                osc.frequency.setValueAtTime(1047, now + 0.45);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.setValueAtTime(0.2, now + 0.45);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            } else if (type === 'coin') {
+                // 投幣：一聲短促的金屬叮
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(1180, now);
+                osc.frequency.setValueAtTime(1560, now + 0.07);
+                gain.gain.setValueAtTime(0.16, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'lose') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(200, now + 0.15);
+                osc.frequency.linearRampToValueAtTime(150, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.1, now + 0.15);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'payout') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+        }
+
+        updatePaytableWinAmounts();
+
+        function createDeck() {
+            const deck = [];
+            for (const suit of suits) {
+                for (const value of values) {
+                    deck.push({ suit, value, isJoker: false });
+                }
+            }
+            deck.push({ ...joker, id: 1 });
+            deck.push({ ...joker, id: 2 });
+            return deck;
+        }
+
+        function shuffle(deck) {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            return deck;
+        }
+
+        function getCardColor(card) {
+            if (card.isJoker) return 'joker';
+            return (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
+        }
+
+        // 牌面圖檔：公版 CC0 牌組（Dmitry Fomin / Wikimedia Commons），放在 cards/ 資料夾
+        const SUIT_CODE = { '♠': 'S', '♥': 'H', '♦': 'D', '♣': 'C' };
+
+        function getCardImageSrc(card) {
+            const code = SUIT_CODE[card.suit];
+            if (!code) return null;
+            const ext = (card.value === 'J' || card.value === 'Q' || card.value === 'K') ? 'webp' : 'png';
+            return `cards/${card.value}${code}.${ext}`;
+        }
+
+        function renderCard(cardElement, card, index) {
+            const front = cardElement.querySelector('.card-front');
+            front.className = 'card-front ' + getCardColor(card);
+            const suit = card.suit;
+
+            if (card.isJoker) {
+                front.innerHTML = `
+                    <div class="card-corner joker-corner">
+                        <span class="joker-word">JOKER</span>
+                    </div>
+                    <div class="card-joker">
+                        <div class="card-joker-face"></div>
+                    </div>
+                    <div class="card-corner card-corner-bottom joker-corner">
+                        <span class="joker-word">JOKER</span>
+                    </div>
+                `;
+                return;
+            }
+
+            const src = getCardImageSrc(card);
+            // 公版牌面自己就是一張完整的牌（含牌框）→ 加 pk-img 關掉 .card-front 的白底/內距/灰框，
+            // 否則牌圖四周會露出一圈外殼（2026-10-07 用戶反映）
+            front.classList.add('pk-img');
+            front.innerHTML = `
+                <div class="card-face pk">
+                    <img class="pkimg" src="${src}" alt="${card.value}${suit}" draggable="false">
+                </div>
+            `;
+            const img = front.querySelector('.pkimg');
+            if (img) {
+                img.addEventListener('error', () => {
+                    // 圖檔載不到（例如只上傳了 index.html）→ 退回內建手繪牌面，不會開天窗
+                    // 手繪版需要 padding/border → 先移除 pk-img
+                    front.classList.remove('pk-img');
+                    front.innerHTML = legacyFaceHTML(card);
+                }, { once: true });
+            }
+        }
+
+        // 內建備援牌面（原本手繪版），圖檔缺失時使用
+        function legacyFaceHTML(card) {
+            const suit = card.suit;
+            const value = card.value;
+            if (value === 'J' || value === 'Q' || value === 'K') {
+                return `
+                    <div class="card-corner">
+                        <span class="value">${value}</span>
+                        <span class="suit">${suit}</span>
+                    </div>
+                    <div class="card-face">${getFaceCardSvg(value, suit)}</div>
+                    <div class="card-corner card-corner-bottom">
+                        <span class="value">${value}</span>
+                        <span class="suit">${suit}</span>
+                    </div>
+                `;
+            }
+            return `
+                <div class="card-corner">
+                    <span class="value">${value}</span>
+                    <span class="suit">${suit}</span>
+                </div>
+                <div class="card-center">${getSuitPattern(value, suit)}</div>
+                <div class="card-corner card-corner-bottom">
+                    <span class="value">${value}</span>
+                    <span class="suit">${suit}</span>
+                </div>
+            `;
+        }
+
+        // ── 人頭牌（J／Q／K）圖樣：傳統宮廷牌樣式 ──
+        // 內框 + 上下對稱（旋轉 180°）的宮廷半身人物；袍色隨花色變化
+        function getFaceCardSvg(value, suit) {
+            const palettes = {
+                '♠': { ink: '#151a2d', robe: '#2a4271', robe2: '#1b2c4d', trim: '#c9a227', trimDark: '#8a6d1e', hair: '#3b2b1d' },
+                '♣': { ink: '#151a2d', robe: '#1f5c46', robe2: '#14402f', trim: '#c9a227', trimDark: '#8a6d1e', hair: '#3b2b1d' },
+                '♥': { ink: '#b81f36', robe: '#b3322a', robe2: '#83211b', trim: '#e0b84a', trimDark: '#a8801f', hair: '#4a2a16' },
+                '♦': { ink: '#b81f36', robe: '#a83a2c', robe2: '#7a2419', trim: '#e0b84a', trimDark: '#a8801f', hair: '#4a2a16' }
+            };
+            const P = palettes[suit] || palettes['♠'];
+            const skin = '#f6d3ad', shade = '#dfa878';
+            const metal = '#dde4ee', metalDark = '#98a6b8';
+            const white = '#eef1f6';
+            const petalA = '#d94a44';
+            const petalB = '#f0a09b';
+
+            // 共用：肩袍 + 頭頸五官（上半部，y 介於 8.5~62.5，鏡射後剛好落在內框內）
+            const body = `
+                <path d="M50 63 C36 63 27 59 25 50 C28 45 33 43 38 41.5 L62 41.5 C67 43 72 45 75 50 C73 59 64 63 50 63 Z" fill="${P.robe}" stroke="${P.trimDark}" stroke-width="0.7"/>
+                <path d="M50 63 C42 63 37 59 36 51 L64 51 C63 59 58 63 50 63 Z" fill="${P.robe2}"/>
+                <path d="M39.5 41.8 L50 52.5 L60.5 41.8" fill="none" stroke="${P.trim}" stroke-width="1.7"/>
+                <path d="M25.5 49.5 C29.5 46 34 43.6 38.5 41.8" fill="none" stroke="${P.trim}" stroke-width="1"/>
+                <path d="M74.5 49.5 C70.5 46 66 43.6 61.5 41.8" fill="none" stroke="${P.trim}" stroke-width="1"/>
+                <path d="M44.5 57.6 L55.5 57.6" stroke="${P.trim}" stroke-width="1.5" stroke-linecap="round"/>
+                <ellipse cx="39.6" cy="30" rx="1.9" ry="2.7" fill="${shade}"/>
+                <ellipse cx="60.4" cy="30" rx="1.9" ry="2.7" fill="${shade}"/>
+                <rect x="46.2" y="38" width="7.6" height="8.4" rx="2.4" fill="${shade}"/>
+                <ellipse cx="50" cy="30" rx="10.5" ry="11.5" fill="${skin}"/>
+                <path d="M46.4 25.4 Q45.6 23.8 44.4 25.1" stroke="${P.ink}" stroke-width="0.95" fill="none" stroke-linecap="round"/>
+                <path d="M53.6 25.4 Q54.4 23.8 55.6 25.1" stroke="${P.ink}" stroke-width="0.95" fill="none" stroke-linecap="round"/>
+                <circle cx="45.9" cy="28.6" r="1.25" fill="${P.ink}"/>
+                <circle cx="54.1" cy="28.6" r="1.25" fill="${P.ink}"/>
+                <path d="M50.4 28.8 Q51.8 31.6 50.2 32.9" stroke="${shade}" stroke-width="1" fill="none" stroke-linecap="round"/>
+            `;
+
+            let figure = body;
+
+            if (value === 'K') {
+                // 國王：三尖皇冠 + 白鬚 + 右手持劍
+                figure += `
+                    <path d="M36.6 22 L40.2 10.4 L45.2 17.6 L50 9.4 L54.8 17.6 L59.8 10.4 L63.4 22 Z" fill="${P.trim}" stroke="${P.trimDark}" stroke-width="0.7"/>
+                    <rect x="36.6" y="20.2" width="26.8" height="3.4" rx="1.5" fill="${P.trim}" stroke="${P.trimDark}" stroke-width="0.6"/>
+                    <circle cx="40.2" cy="10.4" r="1" fill="#fff" opacity="0.9"/>
+                    <circle cx="50" cy="10.6" r="1.3" fill="#fff" opacity="0.9"/>
+                    <circle cx="59.8" cy="10.4" r="1" fill="#fff" opacity="0.9"/>
+                    <path d="M39.4 30 Q37.4 37 39.6 43.4 Q41.6 38 40.6 30 Z" fill="${white}"/>
+                    <path d="M60.6 30 Q62.6 37 60.4 43.4 Q58.4 38 59.4 30 Z" fill="${white}"/>
+                    <path d="M40.6 32 Q42.2 44.6 50 47.2 Q57.8 44.6 59.4 32 Q57.6 37.4 50 37.4 Q42.4 37.4 40.6 32 Z" fill="${white}" stroke="#c9d2e0" stroke-width="0.6"/>
+                    <path d="M44.6 41.6 Q50 44.2 55.4 41.6" stroke="${P.ink}" stroke-width="1" fill="none" stroke-linecap="round"/>
+                    <g>
+                        <rect x="71.6" y="13" width="3.8" height="28" rx="1.1" fill="${metal}" stroke="${metalDark}" stroke-width="0.5"/>
+                        <path d="M73.5 9 L76 13.8 L71 13.8 Z" fill="${metal}" stroke="${metalDark}" stroke-width="0.5"/>
+                        <rect x="67.6" y="41" width="11.8" height="3.1" rx="1.55" fill="${P.trim}" stroke="${P.trimDark}" stroke-width="0.5"/>
+                        <rect x="72.3" y="44.1" width="2.4" height="8.4" rx="1.2" fill="#6b4a22"/>
+                        <circle cx="73.5" cy="54.6" r="2.1" fill="${P.trim}" stroke="${P.trimDark}" stroke-width="0.5"/>
+                        <circle cx="73.5" cy="45.6" r="3.3" fill="${skin}" stroke="${shade}" stroke-width="0.5"/>
+                    </g>
+                `;
+            } else if (value === 'Q') {
+                // 皇后：后冠 + 長髮 + 手持鬱金香
+                figure += `
+                    <path d="M39 22 L41.6 13.6 L45.6 18 L50 12 L54.4 18 L58.4 13.6 L61 22 Z" fill="${P.trim}" stroke="${P.trimDark}" stroke-width="0.7"/>
+                    <rect x="38.6" y="20.4" width="22.8" height="3.2" rx="1.5" fill="${P.trim}" stroke="${P.trimDark}" stroke-width="0.6"/>
+                    <circle cx="50" cy="11.4" r="1.35" fill="#fff" opacity="0.95"/>
+                    <circle cx="42.6" cy="14.4" r="1.05" fill="#fff" opacity="0.9"/>
+                    <circle cx="57.4" cy="14.4" r="1.05" fill="#fff" opacity="0.9"/>
+                    <path d="M40.6 20 Q34.8 30 36.4 46.5 L45 44 Q40.4 32 42.6 21.4 Z" fill="${P.hair}"/>
+                    <path d="M59.4 20 Q65.2 30 63.6 46.5 L55 44 Q59.6 32 57.4 21.4 Z" fill="${P.hair}"/>
+                    <path d="M42 19.6 Q50 15.4 58 19.6 Q54 17.2 50 17.2 Q46 17.2 42 19.6 Z" fill="${P.hair}"/>
+                    <path d="M46 37.6 Q50 39.8 54 37.6" stroke="${P.ink}" stroke-width="1" fill="none" stroke-linecap="round"/>
+                    <g>
+                        <path d="M33.4 54 Q29 45 28.2 36.6" stroke="#3d7a37" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+                        <path d="M28.2 40.4 Q23.2 34.4 27 29 Q31 34.4 28.2 40.4 Z" fill="#4e9c46"/>
+                        <path d="M28 30.6 Q22 26.8 24.6 19.2 Q30.4 23.2 28 30.6 Z" fill="${petalA}"/>
+                        <path d="M28 30.6 Q34 26.8 31.4 19.2 Q25.6 23.2 28 30.6 Z" fill="${petalB}"/>
+                        <circle cx="32.8" cy="53" r="3.3" fill="${skin}" stroke="${shade}" stroke-width="0.5"/>
+                    </g>
+                `;
+            } else {
+                // 侍衛（Jack）：羽飾軟帽 + 手持戟
+                figure += `
+                    <path d="M37 20.6 Q50 8 63 20.6 Z" fill="${P.robe2}" stroke="${P.trimDark}" stroke-width="0.7"/>
+                    <rect x="35.4" y="19.4" width="29.2" height="3.2" rx="1.6" fill="${P.robe2}" stroke="${P.trim}" stroke-width="0.7"/>
+                    <path d="M59 19.5 Q71 10.6 78.6 15 Q70 20.8 61.6 21.8 Z" fill="${P.trim}" stroke="${P.trimDark}" stroke-width="0.6"/>
+                    <path d="M61.6 20.4 Q70 14 77 15" stroke="${P.trimDark}" stroke-width="0.6" fill="none"/>
+                    <path d="M41 21.4 Q50 16.6 59 21.4 Q54.4 18.4 50 18.4 Q45.6 18.4 41 21.4 Z" fill="${P.hair}"/>
+                    <path d="M46.2 37.4 Q50 39.8 53.8 37.4" stroke="${P.ink}" stroke-width="1" fill="none" stroke-linecap="round"/>
+                    <g>
+                        <path d="M74.6 55.4 L68.6 16.6" stroke="#6b4a22" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M67.4 17 L69.8 9 L72.4 17 Z" fill="${metal}" stroke="${metalDark}" stroke-width="0.5"/>
+                        <path d="M67.4 17 L64.4 13.4 L67.4 13.4 Z" fill="${metal}" stroke="${metalDark}" stroke-width="0.5"/>
+                        <circle cx="73.4" cy="53.6" r="3.3" fill="${skin}" stroke="${shade}" stroke-width="0.5"/>
+                    </g>
+                `;
+            }
+
+            return `<svg viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg" class="face-svg" preserveAspectRatio="xMidYMid meet">
+                <rect x="4.5" y="4.5" width="91" height="121" rx="5" fill="#fdfcf7" stroke="${P.ink}" stroke-width="1.7"/>
+                <rect x="8.5" y="8.5" width="83" height="113" rx="3" fill="none" stroke="${P.trim}" stroke-width="0.9" opacity="0.95"/>
+                <text x="14" y="22.5" font-size="11" fill="${P.ink}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif">${suit}</text>
+                <g>${figure}</g>
+                <g transform="rotate(180 50 65)">${figure}</g>
+            </svg>`;
+        }
+
+        function getSuitPattern(value, suit) {
+            const count = parseInt(value) || 1;
+            let html = '';
+            
+            const patterns = {
+                'A': [[0.5, 0.5]],
+                '2': [[0.5, 0.25], [0.5, 0.75]],
+                '3': [[0.5, 0.2], [0.5, 0.5], [0.5, 0.8]],
+                '4': [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]],
+                '5': [[0.25, 0.25], [0.75, 0.25], [0.5, 0.5], [0.25, 0.75], [0.75, 0.75]],
+                '6': [[0.25, 0.2], [0.75, 0.2], [0.25, 0.45], [0.75, 0.45], [0.25, 0.7], [0.75, 0.7]],
+                '7': [[0.25, 0.2], [0.75, 0.2], [0.5, 0.35], [0.25, 0.5], [0.75, 0.5], [0.25, 0.7], [0.75, 0.7]],
+                '8': [[0.25, 0.2], [0.75, 0.2], [0.25, 0.4], [0.75, 0.4], [0.25, 0.6], [0.75, 0.6], [0.25, 0.8], [0.75, 0.8]],
+                '9': [[0.25, 0.15], [0.75, 0.15], [0.5, 0.35], [0.25, 0.55], [0.75, 0.55], [0.25, 0.75], [0.75, 0.75], [0.25, 0.95], [0.75, 0.95]],
+                '10': [[0.25, 0.1], [0.75, 0.1], [0.5, 0.26], [0.25, 0.42], [0.75, 0.42], [0.25, 0.58], [0.75, 0.58], [0.5, 0.74], [0.25, 0.9], [0.75, 0.9]]
+            };
+            
+            const positions = patterns[value] || [[0.5, 0.5]];
+            positions.forEach(([x, y]) => {
+                html += `<span class="card-suit-small" style="position:absolute;left:${x*100}%;top:${y*100}%;transform:translate(-50%,-50%)">${suit}</span>`;
+            });
+            
+            return html;
+        }
+
+        function getCardRank(card) {
+            if (card.isJoker) return -1;
+            return values.indexOf(card.value);
+        }
+
+        function isFlush(cards) {
+            const nonJokers = cards.filter(c => !c.isJoker);
+            if (nonJokers.length === 0) return true;
+            
+            const suitCounts = {};
+            nonJokers.forEach(c => {
+                suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
+            });
+            
+            const jokerCount = cards.filter(c => c.isJoker).length;
+            
+            for (const suit in suitCounts) {
+                if (suitCounts[suit] + jokerCount >= 5) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function isStraight(cards) {
+            const jokerCount = cards.filter(c => c.isJoker).length;
+            const ranks = cards
+                .filter(c => !c.isJoker)
+                .map(c => getCardRank(c))
+                .sort((a, b) => a - b);
+            
+            if (ranks.length === 0) return true;
+            
+            const uniqueRanks = [...new Set(ranks)];
+            
+            if (uniqueRanks.length + jokerCount < 5) return false;
+            
+            if (uniqueRanks.length === 0) return true;
+            
+            if (uniqueRanks.length === 1) return true;
+            
+            const sortedRanks = [...uniqueRanks].sort((a, b) => a - b);
+            
+            for (let start = 0; start < sortedRanks.length; start++) {
+                const startRank = sortedRanks[start];
+                
+                if (startRank > 8) continue;
+                
+                let jokersNeeded = 0;
+                for (let r = startRank; r < startRank + 5; r++) {
+                    if (!sortedRanks.includes(r)) {
+                        jokersNeeded++;
+                    }
+                }
+                
+                if (jokersNeeded <= jokerCount) {
+                    return true;
+                }
+            }
+            
+            const hasA = uniqueRanks.includes(0);
+            const hasT = uniqueRanks.includes(9);
+            const hasJ = uniqueRanks.includes(10);
+            const hasQ = uniqueRanks.includes(11);
+            const hasK = uniqueRanks.includes(12);
+            
+            if (hasT && hasJ && hasQ && hasK) {
+                const neededForAHigh = hasA ? 0 : 1;
+                if (neededForAHigh <= jokerCount) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        function countRankOccurrences(cards) {
+            const counts = {};
+            cards.filter(c => !c.isJoker).forEach(c => {
+                const rank = getCardRank(c);
+                counts[rank] = (counts[rank] || 0) + 1;
+            });
+            return counts;
+        }
+
+        function getBestHand(cards) {
+            const jokerCount = cards.filter(c => c.isJoker).length;
+            const nonJokers = cards.filter(c => !c.isJoker);
+            
+            if (jokerCount === 5) return { name: '五鬼牌', payout: 800 };
+            if (jokerCount === 4) return { name: '5梅', payout: 200 };
+            
+            if (jokerCount === 0) {
+                return evaluateHandWithoutJokers(cards);
+            }
+            
+            const results = [];
+            
+            const ranks = countRankOccurrences(cards);
+            const rankCounts = Object.values(ranks);
+            const maxRankCount = Math.max(...rankCounts, 0);
+            
+            const uniqueRanks = nonJokers.map(c => getCardRank(c));
+            
+            if (maxRankCount >= 2 || jokerCount >= 2) {
+                const suitCounts = {};
+                nonJokers.forEach(c => {
+                    suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
+                });
+                
+                if (jokerCount >= 1) {
+                    for (const suit in suitCounts) {
+                        if (suitCounts[suit] + jokerCount >= 5) {
+                            results.push({ name: '同花', payout: 5 });
+                            
+                            const ranksSorted = uniqueRanks.sort((a, b) => a - b);
+                            for (let startRank = 0; startRank <= 8; startRank++) {
+                                const needed = [];
+                                for (let r = startRank; r < startRank + 5; r++) {
+                                    needed.push(r);
+                                }
+                                let matches = 0;
+                                for (const rank of ranksSorted) {
+                                    if (needed.includes(rank)) matches++;
+                                }
+                                const jokersNeeded = 5 - matches;
+                                if (jokersNeeded <= jokerCount) {
+                                    results.push({ name: '同花順', payout: 120 });
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                for (const r of uniqueRanks) {
+                    const count = ranks[r] || 0;
+                    if (count + jokerCount >= 5) {
+                        results.push({ name: '5梅', payout: 200 });
+                    } else if (count + jokerCount >= 4) {
+                        results.push({ name: '鐵支', payout: 50 });
+                    } else if (count + jokerCount >= 3) {
+                        results.push({ name: '3條', payout: 2 });
+                    }
+                }
+                
+                if (jokerCount >= 3) {
+                    results.push({ name: '5梅', payout: 200 });
+                }
+                
+                if (maxRankCount >= 2) {
+                    if (jokerCount >= 1) {
+                        const pairCounts = Object.values(ranks).filter(v => v >= 2).length;
+                        if (pairCounts >= 2) {
+                            results.push({ name: '葫蘆', payout: 7 });
+                        }
+                        
+                        for (const rank in ranks) {
+                            const count = ranks[rank];
+                            
+                            if (count >= 3) {
+                                results.push({ name: '鐵支', payout: 50 });
+                            } else if (count + jokerCount >= 3) {
+                                const testCards = [];
+                                const usedSuits = [];
+                                const existingCards = nonJokers.filter(c => getCardRank(c) === parseInt(rank));
+                                for (let i = 0; i < existingCards.length; i++) {
+                                    testCards.push(existingCards[i]);
+                                    usedSuits.push(existingCards[i].suit);
+                                }
+                                const needed = 3 - count;
+                                for (let i = 0; i < needed; i++) {
+                                    let suitIdx = i % 4;
+                                    while (usedSuits.includes(suits[suitIdx])) {
+                                        suitIdx = (suitIdx + 1) % 4;
+                                    }
+                                    testCards.push({ isJoker: false, suit: suits[suitIdx], value: values[rank] });
+                                    usedSuits.push(suits[suitIdx]);
+                                }
+                                const remainingCards = nonJokers.filter(c => getCardRank(c) !== parseInt(rank));
+                                while (testCards.length < 5 && remainingCards.length > 0) {
+                                    const card = remainingCards.shift();
+                                    if (!usedSuits.includes(card.suit) || testCards.filter(c => c.suit === card.suit).length < 2) {
+                                        testCards.push(card);
+                                    }
+                                }
+                                const result = evaluateHandWithoutJokers(testCards);
+                                results.push(result);
+                            }
+                        }
+                    }
+                    
+                    for (const rank in ranks) {
+                        const count = ranks[rank];
+                        if (count === 1 && jokerCount >= 1) {
+                            const testCards = [...nonJokers];
+                            testCards.push({ isJoker: false, suit: '♠', value: values[rank] });
+                            const result = evaluateHandWithoutJokers(testCards);
+                            results.push(result);
+                        } else if (count >= 2) {
+                            const testCards = [...nonJokers];
+                            const extraCards = nonJokers.filter(c => getCardRank(c) === rank);
+                            const extraSuits = extraCards.length > 0 ? [extraCards[0].suit] : [];
+                            for (let i = 0; i < 2 - count; i++) {
+                                testCards.push({ isJoker: false, suit: extraSuits[i] || '♠', value: values[rank] });
+                            }
+                            const result = evaluateHandWithoutJokers(testCards);
+                            results.push(result);
+                        }
+                    }
+                }
+                
+                results.push(evaluateHandWithoutJokers(nonJokers));
+            } else {
+                const suitCounts = {};
+                nonJokers.forEach(c => {
+                    suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
+                });
+                
+                for (const suit in suitCounts) {
+                    if (suitCounts[suit] + jokerCount >= 5) {
+                        results.push({ name: '同花', payout: 5 });
+                        break;
+                    }
+                }
+                
+                const usedRanks = new Set();
+                
+                for (const r of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+                    if (uniqueRanks.includes(r)) continue;
+                    if (usedRanks.has(r)) continue;
+                    
+                    for (const suit in suitCounts) {
+                        const testCards = [...nonJokers, { isJoker: false, suit: suit, value: values[r] }];
+                        const result = evaluateHandWithoutJokers(testCards);
+                        results.push(result);
+                    }
+                    usedRanks.add(r);
+                }
+                
+                results.push(evaluateHandWithoutJokers(nonJokers));
+            }
+            
+            results.sort((a, b) => b.payout - a.payout);
+            
+            return results[0] || { name: '沒中獎', payout: 0 };
+        }
+        
+        function evaluateHandWithoutJokers(cards) {
+            const ranks = countRankOccurrences(cards);
+            const rankValues = Object.values(ranks);
+            const maxRankCount = Math.max(...rankValues, 0);
+            
+            const hasFlush = isFlush(cards);
+            const hasStraight = isStraight(cards);
+
+            const uniqueRanksNoJoker = cards.map(c => getCardRank(c));
+            const uniqueNoJoker = [...new Set(uniqueRanksNoJoker)];
+            
+            if (hasFlush && hasStraight && uniqueNoJoker.length >= 3 &&
+                uniqueNoJoker.includes(0) && 
+                uniqueNoJoker.includes(9) && uniqueNoJoker.includes(10) && 
+                uniqueNoJoker.includes(11) && uniqueNoJoker.includes(12)) {
+                return { name: '同花大順', payout: 500 };
+            }
+
+            if (hasFlush && hasStraight) return { name: '同花順', payout: 120 };
+
+            const canMakeFourOfAKind = maxRankCount >= 4;
+            if (canMakeFourOfAKind) return { name: '鐵支', payout: 50 };
+
+            const hasThreeOfAKind = maxRankCount >= 3;
+            const hasPair = rankValues.filter(v => v === 2).length >= 1;
+            const hasTwoPair = rankValues.filter(v => v === 2).length >= 2;
+
+            // ⚠️ 順序要緊：葫蘆（3+2）必須先判，否則會被下面的「三條」攔走
+            const canMakeFullHouse = hasThreeOfAKind && hasPair;
+            if (canMakeFullHouse) return { name: '葫蘆', payout: 7 };
+
+            if (hasThreeOfAKind) return { name: '3條', payout: 2 };
+
+            if (hasFlush) return { name: '同花', payout: 5 };
+            if (hasStraight) return { name: '順子', payout: 3 };
+
+            if (hasTwoPair) return { name: '2對', payout: 1 };
+            
+            if (hasPair) return { name: '一對', payout: 0 };
+
+            return { name: '沒中獎', payout: 0 };
+        }
+
+        function createParticles() {
+            particlesContainer.innerHTML = '';
+            const emojis = ['🎴', '⭐', '💰', '🎉', '✨'];
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDelay = Math.random() * 0.5 + 's';
+                particlesContainer.appendChild(particle);
+            }
+            setTimeout(() => {
+                particlesContainer.innerHTML = '';
+            }, 2500);
+        }
+
+        function updateBalance(amount) {
+            balance += amount;
+            balanceEl.textContent = balance;
+        }
+
+        // 派彩動畫：金額一次入帳，畫面用 requestAnimationFrame 倒數（固定時長，不會爆）
+        let balanceAnimId = null;
+        function animateBalanceGain(amount, duration = 900) {
+            if (balanceAnimId) cancelAnimationFrame(balanceAnimId);
+            const from = balance;
+            const to = balance + amount;
+            balance = to;                       // ← 真正的入帳只做一次
+            const start = performance.now();
+            function frame(now) {
+                const t = Math.min(1, (now - start) / duration);
+                const eased = 1 - Math.pow(1 - t, 3);
+                balanceEl.textContent = Math.round(from + amount * eased);
+                if (t < 1) { balanceAnimId = requestAnimationFrame(frame); }
+                else { balanceAnimId = null; balanceEl.textContent = balance; }
+            }
+            balanceAnimId = requestAnimationFrame(frame);
+        }
+
+        function countUpText(el, target, duration = 1200) {
+            if (!el) return;
+            const start = performance.now();
+            function frame(now) {
+                const t = Math.min(1, (now - start) / duration);
+                const eased = 1 - Math.pow(1 - t, 3);
+                el.textContent = Math.round(target * eased);
+                if (t < 1) requestAnimationFrame(frame);
+                else el.textContent = target;
+            }
+            requestAnimationFrame(frame);
+        }
+
+        function highlightPaytable(payout) {
+            const winAmount = bet * payout;
+            clearHighlight();
+
+            if (payout === 800) {
+                const jackpotEl = document.getElementById('jackpotDisplay');
+                jackpotEl.classList.add('highlight');
+                countUpText(jackpotEl.querySelector('.jackpot-win'), winAmount, 1500);
+            }
+
+            document.querySelectorAll('.paytable-item').forEach(item => {
+                const prize = parseInt(item.dataset.prize);
+                if (prize === payout) {
+                    item.classList.add('highlight');
+                    countUpText(item.querySelector('.win-amount'), winAmount, 1200);
+                }
+            });
+        }
+
+        function clearHighlight() {
+            const jackpotEl = document.getElementById('jackpotDisplay');
+            jackpotEl.classList.remove('highlight');
+            const jackpotWinEl = jackpotEl.querySelector('.jackpot-win');
+            jackpotWinEl.textContent = bet * 800;
+            
+            document.querySelectorAll('.paytable-item').forEach(item => {
+                item.classList.remove('highlight');
+                const winEl = item.querySelector('.win-amount');
+                const prize = parseInt(item.dataset.prize);
+                winEl.textContent = bet * prize;
+            });
+        }
+
+        function showResult(text, state) {
+            const cls = state === true ? 'win' : (state === false ? 'lose' : 'info');
+            resultDisplay.innerHTML = `<div class="result-text ${cls}">${text}</div>`;
+        }
+
+        async function startGame() {
+            if (gameInProgress) return;
+            if (bet > balance) {
+                showResult('餘額不足!', false);
+                return;
+            }
+
+            gameInProgress = true;
+            canDraw = false;
+            heldCards = [false, false, false, false, false];
+            startBtn.disabled = true;
+            drawBtn.disabled = true;
+            coinBtn.disabled = true;
+            betMinusBtn.disabled = true;
+            betPlusBtn.disabled = true;
+            clearHighlight();
+            resultDisplay.innerHTML = '';
+
+            updateBalance(-bet);
+
+            // 記憶：累計局數／累計投注
+            save.games += 1;
+            save.totalBet += bet;
+            writeSave();
+
+            const deck = shuffle(createDeck());
+            currentCards = deck.slice(0, 5);
+            drawPile = deck.slice(5);          // ← 換牌只能從這裡抽（47 張，不回收）
+
+            const cardElements = document.querySelectorAll('.card');
+            cardElements.forEach(card => {
+                card.classList.remove('flipped', 'dealing', 'show-prize', 'held');
+                card.querySelector('.prize-display').textContent = '';
+            });
+
+            await new Promise(r => setTimeout(r, 100));
+
+            cardElements.forEach((cardEl, i) => {
+                cardEl.classList.add('dealing');
+                renderCard(cardEl, currentCards[i], i);
+            });
+
+            await new Promise(r => setTimeout(r, 500));
+
+            cardElements.forEach((cardEl, i) => {
+                setTimeout(() => {
+                    cardEl.classList.add('flipped');
+                    playSound('deal');
+                }, i * 150);
+            });
+
+            await new Promise(r => setTimeout(r, 1000));
+
+            // ── 鬼牌加碼：開牌出現 2 張鬼牌時，極低機率再補 3 張成 5 鬼（拉下 800x）──
+            let jokerBonus = false;
+            const jokerOnBoard = currentCards.filter(c => c.isJoker).length;
+            if (jokerOnBoard === 2 && Math.random() < 1 / JACKPOT_EXTRA_ODDS) {
+                jokerBonus = true;
+                playSound('win');
+                const rest = [];
+                currentCards.forEach((c, i) => { if (!c.isJoker) rest.push(i); });
+                rest.forEach((idx, k) => {
+                    setTimeout(() => {
+                        cardElements[idx].classList.remove('flipped');
+                        setTimeout(() => {
+                            currentCards[idx] = { ...joker, id: 100 + k };
+                            renderCard(cardElements[idx], currentCards[idx], idx);
+                            cardElements[idx].classList.add('flipped');
+                            playSound('draw');
+                        }, 380);
+                    }, 300 + k * 450);
+                });
+                await new Promise(r => setTimeout(r, 300 + rest.length * 450 + 520));
+                // 自動全部 HOLD，免得玩家手滑把 5 鬼換掉
+                heldCards = [true, true, true, true, true];
+                cardElements.forEach(el => el.classList.add('held'));
+                createParticles();
+                playSound('win');
+                save.jackpots += 1;
+                writeSave();
+            }
+
+            const initialResult = getBestHand(currentCards);
+            if (jokerBonus) {
+                showResult(`🎉 五鬼牌！按「換牌」領 ${bet * initialResult.payout}`, true);
+                highlightPaytableNoPayout(initialResult.payout);
+            } else if (initialResult.payout > 0) {
+                showResult(`目前 ${initialResult.name}｜要留的按 HOLD，再按「換牌」結算`, 'info');
+                highlightPaytableNoPayout(initialResult.payout);
+            } else {
+                showResult('要留的牌按 HOLD，再按「換牌」', 'info');
+            }
+
+            canDraw = true;
+            drawBtn.disabled = false;
+
+            gameInProgress = false;
+            startBtn.disabled = true;
+            coinBtn.disabled = false;
+            betMinusBtn.disabled = true;
+            betPlusBtn.disabled = true;
+        }
+
+        function highlightPaytableNoPayout(payout) {
+            document.querySelectorAll('.paytable-item').forEach(item => {
+                item.classList.remove('highlight');
+                const prize = parseInt(item.dataset.prize);
+                if (prize === payout) {
+                    item.classList.add('highlight');
+                }
+            });
+            if (payout === 800) {
+                document.getElementById('jackpotDisplay').classList.add('highlight');
+            }
+        }
+
+        async function drawCards() {
+            if (!canDraw) return;
+
+            gameInProgress = true;
+            canDraw = false;
+            drawBtn.disabled = true;
+            startBtn.disabled = true;
+            coinBtn.disabled = true;
+
+            clearHighlight();
+
+            const cardElements = document.querySelectorAll('.card');
+
+            for (let i = 0; i < 5; i++) {
+                if (!heldCards[i]) {
+                    // 只從「發牌後剩下的牌堆」抽，丟掉的牌不會再回來（跟真機台一樣）
+                    const newCard = drawPile.pop();
+                    if (!newCard) break;
+                    currentCards[i] = newCard;
+
+                    cardElements[i].classList.remove('flipped');
+                    await new Promise(r => setTimeout(r, 500));
+
+                    renderCard(cardElements[i], newCard, i);
+
+                    await new Promise(r => setTimeout(r, 300));
+
+                    cardElements[i].classList.add('flipped');
+                    playSound('draw');
+                    await new Promise(r => setTimeout(r, 400));
+                }
+            }
+
+            await new Promise(r => setTimeout(r, 500));
+
+            const result = getBestHand(currentCards);
+
+            if (result.payout > 0) {
+                playSound('win');
+                animateBalanceGain(bet * result.payout);   // ← 入帳一次（金額固定，不隨動畫長度變動）
+                highlightPaytable(result.payout);
+                showResult(`${result.name} ＋${bet * result.payout}`, true);
+                createParticles();
+                save.bestWin = Math.max(save.bestWin, bet * result.payout);
+            } else {
+                playSound('lose');
+                clearHighlight();
+                showResult(`${result.name}｜沒中`, false);
+            }
+            writeSave();            // 結算後存檔（餘額、局數、最佳成績）
+
+            gameInProgress = false;
+            startBtn.disabled = false;
+            coinBtn.disabled = false;
+            betMinusBtn.disabled = false;
+            betPlusBtn.disabled = false;
+            canDraw = false;
+        }
+
+        function toggleHold(index) {
+            if (!canDraw) return;
+            
+            heldCards[index] = !heldCards[index];
+            const cardEl = document.querySelector(`.card[data-index="${index}"]`);
+            if (heldCards[index]) {
+                cardEl.classList.add('held');
+            } else {
+                cardEl.classList.remove('held');
+            }
+            playSound('hold');
+        }
+
+        // ── 投幣：每投一次 +500 分（取代原本的「重置」）──
+        const COIN_VALUE = 500;
+        function insertCoin() {
+            save.coins += 1;
+            animateBalanceGain(COIN_VALUE, 500);
+            playSound('coin');
+            writeSave();                 // 存檔：餘額與投幣次數
+        }
+
+        // 隱藏指令：在瀏覽器 Console（F12）打 clearHupiSave() 可清空全部記憶、回到 1000 分重新開始
+        function clearHupiSave() {
+            try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+            save = { ...DEFAULT_SAVE };
+            balance = save.balance;
+            bet = save.bet;
+            balanceEl.textContent = balance;
+            betAmountEl.textContent = bet;
+            betDisplayEl.textContent = bet;
+            clearHighlight();
+            resultDisplay.innerHTML = '';
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('flipped', 'dealing', 'show-prize', 'held');
+                card.querySelector('.prize-display').textContent = '';
+            });
+            startBtn.disabled = false;
+            drawBtn.disabled = true;
+            betMinusBtn.disabled = false;
+            betPlusBtn.disabled = false;
+            updatePaytableWinAmounts();
+            writeSave();
+            showResult('已清除記憶，重新開始', 'info');
+        }
+        window.clearHupiSave = clearHupiSave;
+
+        function updatePaytableWinAmounts() {
+            document.querySelectorAll('.paytable-item').forEach(item => {
+                const prize = parseInt(item.dataset.prize);
+                const winAmount = bet * prize;
+                const winEl = item.querySelector('.win-amount');
+                winEl.textContent = winAmount;
+            });
+            const jackpotWinEl = document.querySelector('.jackpot-win');
+            jackpotWinEl.textContent = bet * 800;
+        }
+
+        function adjustBet(delta) {
+            const newBet = bet + delta;
+            if (newBet >= 10 && newBet <= 1000) {
+                bet = newBet;
+                betAmountEl.textContent = bet;
+                betDisplayEl.textContent = bet;
+                updatePaytableWinAmounts();
+                writeSave();            // 押分也記起來
+            }
+        }
+
+        betMinusBtn.addEventListener('click', () => adjustBet(-10));
+        betPlusBtn.addEventListener('click', () => adjustBet(10));
+        startBtn.addEventListener('click', startGame);
+        drawBtn.addEventListener('click', drawCards);
+        coinBtn.addEventListener('click', insertCoin);
+
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('helpClose').addEventListener('click', () => helpModal.classList.remove('open'));
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) helpModal.classList.remove('open');
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        document.querySelectorAll('.card').forEach((card, index) => {
+            card.addEventListener('click', () => {
+                if (canDraw) {
+                    toggleHold(index);
+                }
+            });
+        });
+
+        // ── 開場：把上次的記憶讀回來（餘額／押分／連戰局數）──
+        balanceEl.textContent = balance;
+        betAmountEl.textContent = bet;
+        betDisplayEl.textContent = bet;
+        updatePaytableWinAmounts();
+        if (save.games > 0 || save.coins > 0) {
+            showResult(`歡迎回來！這是第 ${save.games + 1} 局 ｜ 累計投幣 ${save.coins} 次`, 'info');
+        }
+    </script>
+</body>
+</html>
