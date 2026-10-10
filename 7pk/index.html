@@ -127,6 +127,15 @@
   #hint{position:absolute;right:16px;bottom:46px;font-size:13px;color:#2b6b2b;font-weight:normal;text-align:right;}
   /* ★ 2026-10-10 用戶要求：畫面上放一行小字註記（分享用、不搶戲） */
   #note{position:absolute;right:16px;bottom:66px;font-size:12.5px;color:#4a9a4a;font-weight:normal;letter-spacing:1px;text-align:right;}
+  /* ★ 2026-10-10 首次載入提示（用戶：免得別人以為我們沒設計好） */
+  #load{position:absolute;inset:0;z-index:250;background:#040704;display:none;align-items:center;justify-content:center;}
+  #load.on{display:flex;}
+  .load-box{width:640px;text-align:center;}
+  .load-title{font-size:56px;letter-spacing:10px;color:var(--red);-webkit-text-stroke:3px #26d426;text-shadow:0 0 18px rgba(255,60,60,.55);}
+  .load-msg{font-size:19px;color:#9cff9c;margin:14px 0 14px;letter-spacing:2px;line-height:1.5;}
+  .load-bar{height:16px;border:2px solid var(--green);border-radius:9px;overflow:hidden;background:#000;}
+  .load-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1f8a1f,#3ce03c);}
+  .load-pct{font-size:20px;color:var(--yellow);margin-top:8px;letter-spacing:2px;}
 
   #du{position:absolute;inset:0;z-index:100;background:rgba(0,0,0,.88);display:none;flex-direction:column;
     align-items:center;justify-content:center;gap:12px;}
@@ -185,6 +194,15 @@
   </div>
 
   <div id="logo"><div class="big">HOOBE</div><div class="sub">7 P K</div></div>
+
+  <div id="load">
+    <div class="load-box">
+      <div class="load-title">HOOBE 7PK</div>
+      <div class="load-msg">第一次開啟要先載入牌面與音效（牌 52 張＋音效 13 段），<br>請稍等一下，載完就順了…</div>
+      <div class="load-bar"><i id="loadBar"></i></div>
+      <div class="load-pct" id="loadPct">0%</div>
+    </div>
+  </div>
 
   <div id="duInfo"></div>
   <div id="prompt"></div>
@@ -774,6 +792,7 @@ document.getElementById('helpClose').onclick=closeHelp;
 document.getElementById('help').onclick=e=>{ if(e.target.id==='help') closeHelp(); };
 
 addEventListener('keydown',e=>{
+  if(window.__loading) return;                           // ★ 載入中不吃按鍵
   const helpOn=document.getElementById('help').classList.contains('on');
   if(e.key==='Escape'&&helpOn){ closeHelp(); return; }
   if(e.key==='h'||e.key==='H'){ e.preventDefault(); helpOn? closeHelp():openHelp(); return; }
@@ -792,6 +811,32 @@ addEventListener('keydown',e=>{
 function fit(){ const s=Math.min(innerWidth/1060,innerHeight/600); document.getElementById('wrap').style.transform='scale('+s+')'; }
 addEventListener('resize',fit);
 loadSfx(); fit(); render(); setPrompt(P_PLEASE); setMsg('PLEASE BET'); updateButtons();
+
+/* ═══════════ ★ 2026-10-10 首次載入提示（用戶：免得別人以為我們沒設計好）═══════════
+   第一次開啟要把 52 張牌面＋13 段音效抓下來（約 3MB），在那之前開局會「等牌出不出來」。
+   這裡先全部預載、顯示進度，載完才放行；有快取時幾乎一瞬間（延遲 350ms 才顯示，免得閃一下）。 */
+window.__loading=true;
+function loadSetPct(p){ const bar=document.getElementById('loadBar'), t=document.getElementById('loadPct');
+  if(bar) bar.style.width=p+'%'; if(t) t.textContent=p+'%'; }
+function loadDone(){ if(!window.__loading) return; window.__loading=false; loadSetPct(100);
+  const el=document.getElementById('load'); if(el) el.classList.remove('on'); }
+setTimeout(()=>{ if(window.__loading) document.getElementById('load').classList.add('on'); }, 350);
+(function preloadAll(){
+  const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'], SU=['S','H','D','C'], urls=['hoobe.gif'];
+  RANKS.forEach(r=>SU.forEach(s=>urls.push('cards/'+r+s+((r==='J'||r==='Q'||r==='K')?'.webp':'.png'))));
+  const audios=Object.keys(SFX).map(k=>SFX[k]);
+  const total=urls.length+audios.length; let done=0;
+  const step=()=>{ done++; if(done>=total) loadDone(); else loadSetPct(Math.round(done/total*100)); };
+  urls.forEach(u=>{ const im=new Image(); im.onload=im.onerror=step; im.src=u; });
+  audios.forEach(a=>{
+    let counted=false; const one=()=>{ if(counted) return; counted=true; step(); };
+    if(a.readyState>=4){ one(); return; }
+    a.addEventListener('canplaythrough', one, {once:true});
+    a.addEventListener('error', one, {once:true});
+    setTimeout(one, 8000);                       // 保險：某段音效卡住也先算完成
+  });
+})();
+setTimeout(loadDone, 25000);                     // 最後保險：25 秒一定放行，不讓人卡在載入畫面
 </script>
 </body>
 </html>
