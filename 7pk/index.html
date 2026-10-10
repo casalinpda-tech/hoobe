@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>HOOBE 7PK</title>
+<!-- ★ 2026-10-10 分享用：連結貼出去時外面顯示的預覽（那張帥圖＝同資料夾的 share.png；以後換圖直接覆蓋同檔名就好） -->
+<meta name="description" content="HOOBE 7PK —— 台灣 90 年代電子撲克機台復刻。這是 HOOBE 工作室的作品，歡迎點連結玩。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="HOOBE 7PK｜台灣 90 年代電子撲克復刻">
+<meta property="og:description" content="這是 HOOBE 工作室的作品，歡迎點連結玩。">
+<meta property="og:url" content="https://casalinpda-tech.github.io/hoobe/7pk/">
+<meta property="og:image" content="https://casalinpda-tech.github.io/hoobe/7pk/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://casalinpda-tech.github.io/hoobe/7pk/share.png">
+<style>
+  :root{ --green:#3ce03c; --yellow:#ffe94a; --red:#ff2b2b; --dim:#1d5c1d; }
+  *{box-sizing:border-box;-webkit-user-select:none;user-select:none;}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:"Courier New",monospace;font-weight:bold;}
+  body{display:flex;align-items:center;justify-content:center;}
+  #wrap{width:1060px;height:600px;transform-origin:center center;}
+  #screen{position:relative;width:1060px;height:600px;overflow:hidden;color:var(--green);
+    background:radial-gradient(120% 90% at 50% 45%, #0b120b 0%, #050805 60%, #000 100%);}
+  #screen::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;
+    background:repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);}
+  .glow{text-shadow:0 0 7px currentColor,0 0 2px currentColor;}
+
+  #bal{position:absolute;left:26px;top:8px;font-size:30px;color:var(--red);}
+  #creditBlk{position:absolute;left:26px;top:50px;line-height:1;}
+  #creditBlk .lbl{font-size:30px;letter-spacing:2px;color:var(--yellow);}
+  #betLbl{font-size:30px;color:var(--green);margin-top:4px;}
+
+  #ladder{position:absolute;left:182px;top:30px;width:110px;text-align:center;}
+  #ladder .cell{font-size:29px;line-height:1.0;color:var(--green);}
+  #ladder .cell.zero{color:var(--dim);text-shadow:none;}
+
+  #paytable{position:absolute;left:335px;top:2px;width:500px;}
+  .pt-row{display:grid;grid-template-columns:1fr auto 74px;align-items:baseline;column-gap:6px;
+    font-size:20px;line-height:0.98;letter-spacing:.5px;}
+  .pt-name{color:var(--yellow);white-space:nowrap;}
+  .pt-dots{color:#2f7a2f;overflow:hidden;white-space:nowrap;letter-spacing:2px;}
+  .pt-val{text-align:right;color:var(--green);}   /* 2026-10-09：分數一律綠色（原本綠黃交替），中獎時才轉紅 */
+  .pt-row.hit .pt-name,.pt-row.hit .pt-val{color:var(--red);}
+  .pt-row.hit .pt-dots{color:#8a1a1a;}
+
+  #lamps{position:absolute;right:58px;top:16px;display:flex;flex-direction:column;gap:16px;}
+  #lamps i{display:block;width:26px;height:26px;border-radius:50%;border:3px solid #2a2a2a;background:#111;}
+
+  #cards{position:absolute;left:0;top:186px;width:1060px;height:310px;}
+  .slot{position:absolute;top:0;width:163px;height:244px;border-radius:8px;overflow:hidden;display:none;}
+  /* ★ 2026-10-10：「套殼感」真因＝slot 的矩形 box-shadow（0 3px 8px）會在前一張白牌上留一圈灰暈，
+     只在下排（第 2、4、6 張＝後面有白牌的位置）看得出來 → 改成貼合卡片輪廓的 drop-shadow */
+  .slot .face,.slot .back,.slot .joker{filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.6));}
+  .slot.new{}   /* 卡片直接出現（不播動畫），避免重繪閃動 */
+  .slot.even{top:48px;}
+  .slot.dim::after{content:"";position:absolute;inset:0;background:rgba(196,164,16,.58);}
+  .slot .face{width:100%;height:100%;object-fit:cover;display:block;background:transparent;
+    clip-path:inset(0 round 13px);}
+  .cardback{border-radius:8px;
+    background:repeating-linear-gradient(45deg,#f7f7f7 0 2px,transparent 2px 15px),
+               repeating-linear-gradient(-45deg,#ececec 0 2px,transparent 2px 15px),
+               #c62a22;
+    box-shadow:inset 0 0 0 3px #f6f6f6, inset 0 0 0 5px #8f1c17;}
+  .slot.down .back{width:100%;height:100%;}
+  /* ── 鬼牌（JOKER）：琥比畫像 + 設計過的 JOKER 字　★ 2026-10-10 分紅（.red）／黑（.blk）兩色 ── */
+  /* 注意：7PK 的牌是重疊排的，每張只露出左邊約 102px（主畫面）→ 內容一律靠左放，別被下一張蓋住 */
+  .slot .joker{width:100%;height:100%;border-radius:8px;background:linear-gradient(160deg,#fffdf5 0%,#fff 45%,#f7f0dc 100%);
+    /* ★ 2026-10-10 用戶：撲克牌外圈不要紅框（拿掉卡框），只留「琥比圖片」的外框 */
+    display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding:5px 0 5px 8px;overflow:hidden;}
+  .slot .joker-art{flex:0 0 auto;width:58%;aspect-ratio:1/1;border-radius:6px;
+    background-image:url('hoobe.gif');background-size:contain;background-repeat:no-repeat;background-position:center;
+    box-shadow:0 0 0 2px #c62828,0 2px 5px rgba(0,0,0,.18);}   /* 琥比圖片外框：像牌外圈那樣的細框，紅鬼＝紅 */
+  .slot .joker.blk .joker-art{box-shadow:0 0 0 2px #141414,0 2px 5px rgba(0,0,0,.18);}   /* 黑鬼＝黑 */
+  .slot .joker-word{flex:0 0 auto;font-family:"Arial Black","Impact","Haettenschweiler",sans-serif;
+    font-size:26px;font-weight:900;font-style:italic;letter-spacing:.5px;line-height:1;
+    color:#c62828;-webkit-text-stroke:1.8px #3d0505;
+    text-shadow:2px 2px 0 #ffd9d9,-1px -1px 0 #fff,0 0 9px rgba(198,40,40,.45);
+    transform:rotate(-7deg) skewX(-6deg) scaleX(.85);}
+  .slot .joker.blk .joker-word{color:#141414;-webkit-text-stroke:1.8px #000;
+    text-shadow:2px 2px 0 #d9d9d9,-1px -1px 0 #fff,0 0 9px rgba(0,0,0,.35);}
+  @keyframes pop{from{transform:translateY(8px) scale(.97);opacity:.35;}to{transform:none;opacity:1;}}
+
+  #logo{position:absolute;left:0;top:236px;width:1060px;height:170px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:4px;}
+  #logo .big{font-size:86px;letter-spacing:12px;color:var(--red);-webkit-text-stroke:3px #26d426;
+    text-shadow:0 0 18px rgba(255,60,60,.55);}
+  #logo .sub{font-size:28px;color:#26d426;letter-spacing:10px;}
+
+  #prompt{position:absolute;left:0;bottom:58px;width:1060px;text-align:center;font-size:38px;letter-spacing:5px;}
+  #duInfo{position:absolute;left:0;bottom:104px;width:1060px;text-align:center;font-size:23px;letter-spacing:2px;
+    color:#ffd24a;display:none;}
+  #duInfo .hi{color:var(--red);}
+  #duInfo .dim2{color:#9cff9c;font-size:19px;}
+  #prompt .bet,#prompt .or{color:var(--red);}
+  #prompt .open,#prompt .win{color:var(--yellow);}
+  #prompt .pel{color:#ffd24a;}
+  #score{position:absolute;left:22px;bottom:56px;font-size:30px;color:var(--yellow);}
+  #msg{position:absolute;left:22px;top:142px;width:150px;font-size:19px;color:var(--yellow);line-height:1.1;}
+
+  #btns{position:absolute;left:0;bottom:6px;width:1060px;display:flex;gap:10px;justify-content:center;}
+  button{font-family:inherit;font-weight:bold;font-size:17px;padding:3px 12px;min-width:104px;border-radius:6px;
+    background:#123312;color:#8dff8d;border:2px solid #fff3c4;cursor:pointer;}
+  button:disabled{opacity:.32;cursor:default;}
+  #hint{position:absolute;right:16px;bottom:46px;font-size:13px;color:#2b6b2b;font-weight:normal;text-align:right;}
+  /* ★ 2026-10-10 用戶要求：畫面上放一行小字註記（分享用、不搶戲） */
+  #note{position:absolute;right:16px;bottom:66px;font-size:12.5px;color:#4a9a4a;font-weight:normal;letter-spacing:1px;text-align:right;}
+
+  #du{position:absolute;inset:0;z-index:100;background:rgba(0,0,0,.88);display:none;flex-direction:column;
+    align-items:center;justify-content:center;gap:12px;}
+  #du.on{display:flex;}
+  #du .t1{font-size:28px;color:var(--yellow);}
+  #du .row{display:flex;gap:26px;align-items:center;}
+  #du .card{width:150px;height:225px;border-radius:8px;overflow:hidden;background:#fff;}
+  #du .card img{width:100%;height:100%;object-fit:cover;}
+  #du .lab{font-size:44px;color:#ffd24a;min-width:190px;text-align:center;}
+  #du .amt{font-size:38px;color:var(--green);}
+  #du .small{font-size:22px;color:#9cff9c;min-height:26px;}
+
+  /* ── 帶牌教學彈窗 ── */
+  #help{position:absolute;inset:0;z-index:300;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;}
+  #help.on{display:flex;}
+  .help-box{position:relative;width:946px;max-height:552px;overflow:auto;background:#040704;border:3px solid var(--green);
+    border-radius:10px;padding:10px 20px 10px;box-shadow:0 0 34px rgba(60,224,60,.38);}
+  .help-title{font-size:25px;color:var(--yellow);letter-spacing:8px;text-align:center;margin:0 0 6px;}
+  .help-title small{display:block;font-size:14px;letter-spacing:2px;color:#7fbf7f;}
+  .help-lead{font-size:14.5px;line-height:1.18;color:#9cff9c;margin:0 0 3px;}
+  .help-lead b{color:var(--yellow);}
+  .help-lead em{color:#7fd6ff;font-style:normal;}
+  .help-cols{display:flex;gap:16px;margin:4px 0 2px;}
+  .help-cols table{flex:1;border-collapse:collapse;font-size:15.5px;line-height:1.02;}
+  .help-cols th{background:#0d2b0d;color:var(--yellow);font-weight:bold;}
+  .help-cols th,.help-cols td{border:1px solid #24601f;padding:0 3px;text-align:center;color:var(--green);white-space:nowrap;}
+  .help-cols td.rk{color:var(--yellow);font-weight:bold;}
+  .help-cols td.no{color:#5a8f5a;}
+  .help-suits{font-size:14.5px;color:#9cff9c;margin:0 0 3px;letter-spacing:1px;}
+  .help-suits b{color:var(--yellow);}
+  .help-suits .dimx{color:#7fd6ff;font-size:13.5px;letter-spacing:0;}
+  .help-note{font-size:13.5px;color:#7fbf7f;line-height:1.4;margin:6px 0 0;}
+  .help-note b{color:var(--yellow);}
+  .help-close{position:absolute;right:8px;top:7px;min-width:0;padding:1px 10px;font-size:16px;}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="screen">
+  <div id="bal" class="glow"></div>
+
+  <div id="creditBlk">
+    <div class="lbl glow">CREDIT</div>
+    <div id="betLbl" class="lbl glow">BET</div>
+  </div>
+
+  <div id="ladder"></div>
+  <div id="paytable"></div>
+  <div id="lamps"><i></i><i></i><i></i><i></i></div>
+  <div id="cards">
+    <div class="slot" id="sl0"></div><div class="slot" id="sl1"></div>
+    <div class="slot" id="sl2"></div><div class="slot" id="sl3"></div>
+    <div class="slot" id="sl4"></div><div class="slot" id="sl5"></div>
+    <div class="slot" id="sl6"></div>
+    <div class="slot" id="sl7"></div><div class="slot" id="sl8"></div>
+    <div class="slot" id="sl9"></div><div class="slot" id="sl10"></div>
+  </div>
+
+  <div id="logo"><div class="big">HOOBE</div><div class="sub">7 P K</div></div>
+
+  <div id="duInfo"></div>
+  <div id="prompt"></div>
+
+  <div id="btns">
+    <button id="coinBtn">投幣 +500</button>
+    <button id="betBtn">押分 20</button>
+    <button id="openBtn">開牌 OPEN</button>
+    <button id="duBigBtn" style="display:none">大 BIG</button>
+    <button id="duSmallBtn" style="display:none">小 SMALL</button>
+    <button id="duBtn">比倍</button>
+    <button id="takeBtn">得分</button>
+    <button id="helpBtn">帶牌教學</button>
+  </div>
+  <div id="note">這是 HOOBE 工作室的作品，歡迎點連結玩</div>
+  <div id="hint">空白鍵＝押分／加注　O＝開牌　C＝投幣　H＝帶牌教學</div>
+
+  <div id="help">
+    <div class="help-box">
+      <button class="help-close" id="helpClose">✕</button>
+      <div class="help-title">帶 牌 教 學<small>HOOBE 7PK</small></div>
+      <p class="help-suits"><b>花色對照：</b>♠ 黑桃　♥ 紅心　♦ 方塊　♣ 梅花　<span class="dimx">（花色不影響公式，公式只管點數）</span></p>
+      <p class="help-lead">
+        <b>一局 7 張，只開前 3 張就能算出後面 3 張：</b>第 1 張帶出第 5 張、第 2 張帶出第 6 張、第 3 張帶出第 7 張；
+        第 4 張是<em>電子牌</em>（不受公式，可能是鬼牌）。
+      </p>
+      <p class="help-lead">
+        <b>公式：</b>一帶＝點數×2、二帶＝點數×4。算出來<b>超過 16 就一直減 16</b>：
+        減到 <b>0 的那一格＝鬼牌</b>（表上直接寫「鬼牌」）；減到 <b>14、15 的作廢不算</b>。
+        只有<b>整組都算不出牌</b>的（就只有「7 的一帶」）才是<b>不帶牌＝任意牌</b>。
+        一局只會是「整局一帶」或「整局二帶」其中一種。<em>花色不固定，公式只管點數。</em>
+      </p>
+      <p class="help-lead">
+        <b>鬼牌（JOKER）是萬用牌：</b>它會出現在公式算到 0 的那一格（像 8 的一帶＝鬼牌或 A、4 的二帶＝鬼牌 A 2 3），
+        也可能落在第 1、2、3 張與電子牌，<b>一局最多 2 張</b>。開出鬼牌就等於「那張可以當任何牌」。
+      </p>
+      <div class="help-cols" id="helpTables"></div>
+      <p class="help-lead">
+        <b>怎麼用（實戰判斷）：</b>押第 1 注會先開第 1、3 張（第 2 張蓋著）→ 押第 2 注開第 5 張 →
+        <b>第 5 張一出現，這局是一帶還是二帶就確定了</b>，第 6、7 張的點數也全都能推出來。<br>
+        推得出好牌（湊三條、葫蘆、同花…）就繼續加注；推出來沒搞頭就<b>直接按 OPEN 開牌認賠</b>，別再押。<br>
+        ※ 若第 1 張是 <b>7</b>（一帶時那格不帶牌）→ 第 5 張什麼都可能，要靠第 2、3 張判斷；
+        第 1 張是 <b>8</b>（一帶）→ 第 5 張只會是鬼牌或 A。
+      </p>
+      <p class="help-lead">
+        <b>實例（整局一帶）：</b>第 1 張 J♣、第 3 張 J♠ → 押第 2 注開出第 5 張 <b>6♣</b>
+        → 確定是一帶（J 的一帶＝6、7）→ 第 6、7 張只可能是 6 或 7 → 實際開出 <b>7♠ 7♦</b>。
+      </p>
+      <p class="help-note">
+        <b>註：</b>表上「<b>鬼牌</b>」＝那一格可能直接開鬼牌；「<b>任意</b>」＝整組算不出牌，那格什麼都可能（連鬼牌也會冒出來）。
+      </p>
+      <p class="help-note">按 <b>ESC</b>、按右上 <b>✕</b>、或點視窗外面都可以關掉。</p>
+    </div>
+  </div>
+
+</div></div>
+
+<script>
+/* ═══════════ 原機常數 ═══════════ */
+const SUITS=['S','H','D','C'];
+const SUITSYM={S:'♠',H:'♥',D:'♦',C:'♣'};
+function cname(c){ return c.joker ? (c.s==='B'?'JOKER(黑)':'JOKER(紅)') : c.r+(SUITSYM[c.s]||c.s); }   // ★ 2026-10-10：花色符號＋鬼牌分紅黑
+const RANKN={1:'A',2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',8:'8',9:'9',10:'10',11:'J',12:'Q',13:'K'};
+const PAY=[
+  {k:'rf',name:'ROYAL FLUSH',  mult:500},
+  {k:'5k',name:'5 OF A KIND',  mult:200, alt:true},
+  {k:'sf',name:'STR. FLUSH',   mult:120},
+  {k:'4k',name:'4 OF A KIND',  mult:50},
+  {k:'fh',name:'FULL HOUSE',   mult:7,   alt:true},
+  {k:'fl',name:'FLUSH',        mult:5,   alt:true},
+  {k:'st',name:'STRAIGHT',     mult:3,   alt:true},
+  {k:'3k',name:'3 OF A KIND',  mult:2},
+  {k:'2p',name:'2 PAIRS (J+)',mult:1}
+];
+const PMAP=Object.fromEntries(PAY.map(r=>[r.k,r]));
+const BET_UNIT=20, MAX_BETS=4, FEED=240, SAVE_KEY='hoobe7pk.save.v1';
+
+/* 帶牌公式：一帶={2v,2v+1}、二帶={4v..4v+3}，>15 減 16
+   ★ 2026-10-09 修正（跟公開表全部對得上）：
+     · 減到 0 → 不是作廢，是【鬼牌】（所以 8 一帶＝鬼牌或 A、8 二帶＝鬼牌 A 2 3、4 二帶＝鬼牌 A 2 3）
+     · 減到 14／15 → 作廢（不列）
+     · 整組都算不出牌（只有「7 的一帶」＝{14,15}）→ 【完全自由】，機器愛給什麼就給什麼
+       → 這就是玩家覺得「7 會亂跳」的原因；鬼牌自己是來源牌時（值當 0）→ 一帶＝鬼牌或 A（對上公開表 JOK 列） */
+function red(n){ while(n>15) n-=16; if(n===0) return 'JK'; return RANKN[n]||null; }
+function yidai(v){ return [red(2*v),red(2*v+1)].filter(Boolean); }
+function erdai(v){ return [red(4*v),red(4*v+1),red(4*v+2),red(4*v+3)].filter(Boolean); }
+function bandOf(v,mode){ return mode==='yidai' ? [2*v,2*v+1] : [4*v,4*v+1,4*v+2,4*v+3]; }
+function bandList(v,mode){ return bandOf(v,mode).map(n=>red(n)).filter(Boolean); }   // 有效牌（可能含 'JK'）
+function cellFree(v,mode){ return bandList(v,mode).length===0; }                     // 完全算不出牌 → 自由格
+function cellText(v,mode){
+  const list=bandList(v,mode);
+  if(!list.length) return '任意';
+  return list.map(x=>x==='JK'?'鬼牌':x).join(' ');
+}
+/* 帶牌關係檢查（發牌用）：
+   ① dst 是鬼牌 → 萬用牌，任何位置都成立
+   ② src 是鬼牌 → 值當 0（帶出「鬼牌或 A」）
+   ③ 該格是自由格 → 不帶牌，任何牌都可能
+   ④ 否則 dst 必須在公式清單裡（清單含 'JK' 時鬼牌也算合法） */
+function allowOk(src,dst,mode){
+  if(dst.joker) return true;
+  const v = src.joker ? 0 : src.rv;
+  if(cellFree(v,mode)) return true;
+  return bandList(v,mode).includes(dst.r);
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+/* ═══════════ 音效 ═══════════ */
+const SFX={};
+function loadSfx(){
+  const L={action:'sfx/採用/動作音_投幣進分.mp3', open:'sfx/採用/開牌音.mp3', lose:'sfx/採用/沒中獎音.mp3',
+           raise:'sfx/採用/加注音.mp3', win:'sfx/採用/中獎音.mp3', winS:'sfx/採用/中獎音_小獎.mp3', dup:'sfx/採用/比倍成功音.mp3',
+           f1:'sfx/翻牌音1.mp3', f2:'sfx/翻牌音2.mp3', f3:'sfx/翻牌音3a.mp3', f3b:'sfx/翻牌音3b.mp3',
+           f4:'sfx/翻牌音4.mp3', f5:'sfx/翻牌音5.mp3'};
+  for(const k in L){ const a=new Audio(L[k]); a.preload='auto'; SFX[k]=a; }
+}
+function play(n){ const a=SFX[n]; if(!a) return; try{ a.currentTime=0; a.play().catch(()=>{}); }catch(e){} }
+
+/* ═══════════ 大獎儀式：完整版輪盤的大獎音樂＋「噹噹噹」鈴（WebAudio 合成，原創曲）═══════════
+   來源：D:\AI\roulette-lcd\table.html 的 playJackpot() / playRoundBell()（2026-10-09 搬過來）
+   用途：比倍 5 關全過時，鈴＋音樂一起下，賠率表的分數一分一分跑、同時灌進左上餘額 */
+let audioCtx=null;
+function ensureAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
+let _pulseWave=null;
+function _getPulseWave(){
+  if(_pulseWave) return _pulseWave;
+  const n=24, real=new Float32Array(n), imag=new Float32Array(n);
+  for(let i=1;i<n;i++) real[i]=(2/(i*Math.PI))*Math.sin(Math.PI*i*0.14);
+  _pulseWave=audioCtx.createPeriodicWave(real,imag);
+  return _pulseWave;
+}
+function _tone(freq,at,dur,amp,wave,type){
+  const o=audioCtx.createOscillator();
+  if(wave) o.setPeriodicWave(wave); else o.type=type||'square';
+  o.frequency.value=freq;
+  const g=audioCtx.createGain();
+  g.gain.setValueAtTime(0.0001,at);
+  g.gain.linearRampToValueAtTime(amp,at+0.004);
+  g.gain.exponentialRampToValueAtTime(0.0006,at+dur);
+  o.connect(g).connect(audioCtx.destination);
+  o.start(at); o.stop(at+dur+0.03);
+}
+function _bell(freq,at,dur,amp){
+  [[1,1],[2.76,0.55],[5.4,0.3]].forEach(([r,m])=>{
+    const o=audioCtx.createOscillator();
+    o.type='sine'; o.frequency.value=freq*r;
+    const g=audioCtx.createGain();
+    g.gain.setValueAtTime(amp*m,at);
+    g.gain.exponentialRampToValueAtTime(0.0005,at+dur);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(at); o.stop(at+dur+0.03);
+  });
+}
+function playJackpot(){
+  ensureAudio(); if(!audioCtx) return;
+  const t0=audioCtx.currentTime+0.03, S=0.105, pw=_getPulseWave();
+  /* 第一段（原本的 16 步旋律，約 1.68 秒） */
+  const MEL=[[0,440],[1,493.88],[2,523.25],[3,587.33],[4,659.25],[5,698.46],[6,659.25],[7,587.33],
+             [8,523.25],[9,493.88],[10,523.25],[11,587.33],[12,659.25],[13,440],[14,220],[15,440]];
+  MEL.forEach(([i,f],k)=>{
+    const dur=(k===14)?0.13:(k===15?0.30:S*0.95);
+    _tone(f,t0+i*S,dur,k===15?0.40:0.33,pw);
+  });
+  _tone(523.25,t0+15*S,0.30,0.20,pw);
+  _tone(659.25,t0+15*S,0.30,0.16,pw);
+  /* ★ 2026-10-10 用戶要求「加長一倍」：第二段同主題往上走、最後收在高中低三層主和弦，總長 ≈ 3.9 秒 */
+  const MEL2=[[16,659.25],[17,698.46],[18,783.99],[19,880.00],[20,783.99],[21,698.46],[22,659.25],[23,587.33],
+              [24,659.25],[25,698.46],[26,783.99],[27,880.00],[28,987.77],[29,880.00],[30,783.99],[31,659.25]];
+  MEL2.forEach(([i,f])=>_tone(f,t0+i*S,S*0.95,0.34,pw));
+  _tone(880.00,t0+32*S,0.55,0.42,pw);              // 收尾主和弦（A）
+  _tone(659.25,t0+32*S,0.55,0.24,pw);
+  _tone(440.00,t0+32*S,0.55,0.30,pw);
+  _tone(220.00,t0+32*S,0.55,0.26,pw);
+  /* 低音打底（兩段都鋪） */
+  [[0,110],[2,110],[4,87.31],[6,98],[8,110],[10,87.31],[12,98],[14,82.41],[16,110],[18,110],[20,130.81],[22,98],
+   [24,110],[26,130.81],[28,146.83],[30,98],[32,110]]
+    .forEach(([i,f])=>_tone(f,t0+i*S,0.18,0.42,null,'square'));
+  /* 金屬鈴（兩段都點，尾巴多一顆高音） */
+  [[0,1760],[4,1318.51],[5,1046.50],[8,1760],[10,1046.50],[12,1318.51],[15,1760],
+   [16,1760],[20,1318.51],[22,1046.50],[24,1760],[28,1318.51],[31,1760],[32,2093.00]]
+    .forEach(([i,f])=>_bell(f,t0+i*S,0.5,0.15));
+}
+function playRoundBell(){
+  ensureAudio(); if(!audioCtx) return;
+  const t0=audioCtx.currentTime+0.03, GAP=0.46, N=3;
+  for(let i=0;i<N;i++){
+    const last=(i===N-1);
+    _bell(740,t0+i*GAP,last?0.95:0.60,last?0.30:0.24);
+    _bell(1480,t0+i*GAP,0.30,0.08);
+  }
+}
+/* 賠率表那列的分數一分一分往上跑，同時灌進左上餘額；跑完才回傳（再進下一局） */
+async function jackpotRunUp(){
+  const cell=document.getElementById('pt-'+S.hit);
+  const amt=du.amt, from=S.pool, T=3900, t0=performance.now();   // ★ 2026-10-10：配合加長後的大獎音樂（約 3.9 秒），跑分同步放慢
+  return new Promise(res=>{
+    const tick=()=>{
+      const p=Math.min(1,(performance.now()-t0)/T);
+      const shown=Math.round(amt*p);
+      if(cell) cell.textContent=shown;
+      document.getElementById('bal').textContent=from+shown;
+      if(p<1) requestAnimationFrame(tick);
+      else { if(cell) cell.textContent=amt; document.getElementById('bal').textContent=from+amt; res(); }
+    };
+    requestAnimationFrame(tick);
+  });
+}
+async function jackpotFinish(){
+  ensureAudio();                                   // 先建好音訊（使用者互動後才允許）
+  playRoundBell();                                 // 噹‧噹‧噹
+  playJackpot();                                   // 大獎音樂
+  await jackpotRunUp();                            // 分數跑到餘額
+  finishDu('五關全過');
+}
+
+/* ═══════════ 狀態 ═══════════ */
+const save=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}');
+const S={ pool:(save.pool??1600), credit:(save.credit??0), games:(save.games??0),
+          feed:0, bets:[], cards:[], revealed:[], visible:0,
+          phase:'idle', hit:null, hand:[], mode:'', pending:0, dim:[], duMode:false };
+function writeSave(){ localStorage.setItem(SAVE_KEY, JSON.stringify({pool:S.pool,credit:S.credit,games:S.games})); }
+
+/* ═══════════ 繪製 ═══════════ */
+function totalBet(){ return S.bets.reduce((a,b)=>a+b,0); }
+function faceUrl(c){ const ext=(c.r==='J'||c.r==='Q'||c.r==='K')?'.webp':'.png'; return 'cards/'+c.r+c.s+ext; }
+function render(){
+  document.getElementById('bal').textContent = S.pool;
+  // CREDIT 下面的累計數字已拿掉（2026-10-09 用戶要求：那些分數都已加到上方紅色餘額，不必再顯示一次）
+  const b=totalBet();
+  // 比倍時：賠率表跟著「目前獎金」等比放大（第1關過 ×2、7 保送也 ×2…）
+  const baseShow = (S.duMode && S.hit) ? Math.round(du.amt/PMAP[S.hit].mult) : b;
+  document.getElementById('paytable').innerHTML = PAY.map(r=>{
+    const cls='pt-row'+(r.alt?' alt':'')+(S.hit===r.k?' hit':'');
+    const v = baseShow>0 ? baseShow*r.mult : r.mult;
+    return `<div class="${cls}"><span class="pt-name glow">${r.name}</span>
+      <span class="pt-dots">.............................................</span>
+      <span class="pt-val glow" id="pt-${r.k}">${v}</span></div>`;
+  }).join('');
+  const cells=[S.feed].concat([0,1,2,3].map(i=>S.bets[i]||0));
+  document.getElementById('ladder').innerHTML=cells.map(n=>`<div class="cell ${n?'':'zero'}">${n||0}</div>`).join('');
+  document.querySelectorAll('#lamps i').forEach((el,i)=>{
+    const on=i<S.bets.length;
+    el.style.background=on?'#ff2b2b':'#111'; el.style.borderColor=on?'#7a1414':'#2a2a2a';
+  });
+  if(S.duMode){ renderDu(); return; }
+  document.getElementById('duInfo').style.display='none';
+  const CW=163,gap=102,total=CW+gap*6,left0=(1060-total)/2;
+  for(let i=0;i<7;i++){
+    if(i>=S.visible){ const el=slotEl(i); el.style.display='none'; el.dataset.sig=''; continue; }
+    setSlot(i, S.cards[i], !!S.revealed[i],
+            {x:left0+gap*i, w:CW, h:244, z:i+1, even:(i%2===1), dim:(S.dim||[]).includes(i)});
+  }
+  for(let i=7;i<11;i++){ const el=slotEl(i); if(el){ el.style.display='none'; el.dataset.sig=''; } }   // 比倍用的保留牌位
+  document.getElementById('logo').style.display = S.visible? 'none':'flex';
+}
+function setPrompt(h){ document.getElementById('prompt').innerHTML=h; }
+function setMsg(t){ const el=document.getElementById('msg'); if(el) el.textContent=t||''; }
+const P_BETOPEN='<span class="bet glow">BET</span> <span class="or glow">OR</span> <span class="open glow">OPEN</span>';
+const P_PLEASE='<span class="pel glow">PLEASE</span> <span class="bet glow">BET</span>';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ═══════════ 帶牌公式發牌 ═══════════ */
+function newDeck(){
+  const d=[];
+  for(const s of SUITS) for(let r=1;r<=13;r++) d.push({r:RANKN[r],s,rv:r});
+  d.push({r:'JK',s:'R',rv:0,joker:true}); d.push({r:'JK',s:'B',rv:0,joker:true});   // 52＋2 鬼牌（★ 2026-10-10 s='R' 紅鬼、'B' 黑鬼，用來分色）
+  return d;
+}
+function dealCards(){
+  /* ★ 2026-10-09 改成照實機邏輯「先定公式 → 再生成牌」：
+     ① 1、2、3 張（來源牌）與第 4 張（電子牌）：從 52＋2 張牌堆隨機抽（鬼牌自然可能落在任何位置）
+     ② 5、6、7 張：依公式帶出
+        - 該格是「不帶牌」的自由格（像 7 的一帶、8 的一帶）→ 任意牌（含鬼牌）
+        - 否則 → 抽符合點數的牌；鬼牌是萬用牌，以自然機率（約 3.5%）穿插出現
+     （不用「洗牌後重抽」是因為那樣會把所有局都擠向「來源牌是 7/8 的自由格局」，分佈不自然） */
+  const mode=Math.random()<0.5?'yidai':'erdai';
+  const pool=shuffle(newDeck());
+  const take=c=>{ pool.splice(pool.indexOf(c),1); return c; };
+  const out=[];
+  for(let i=0;i<4;i++) out.push(pool.pop());          // 1、2、3 來源牌 + 第 4 張電子牌（自然分佈，鬼牌 2/54）
+  for(const [src,dst] of [[0,4],[1,5],[2,6]]){
+    const v = out[src].joker ? 0 : out[src].rv;
+    let c=null;
+    if(cellFree(v,mode)){                             // 完全沒約束（7 的一帶）→ 任意牌
+      c = pool.length ? pool.pop() : null;
+    } else {
+      const list=bandList(v,mode);                    // 該格合法牌（清單含 'JK' 時鬼牌也合法）
+      const cand=pool.filter(x=> x.joker ? list.includes('JK') : list.includes(x.r));
+      if(cand.length) c = take(cand[Math.floor(Math.random()*cand.length)]);
+    }
+    if(!c && pool.length) c = pool.pop();             // 保底（該點數的牌都被抽光了）
+    out[dst]=c;
+  }
+  return {cards:out.map(x=>({r:x.r,s:x.s,rv:x.rv,joker:!!x.joker})),mode};
+}
+
+/* ═══════════ 7 取 5 判定（鬼牌可替代任何牌） ═══════════ */
+function eval5(cs){
+  const jok=cs.filter(c=>c.joker).length, rest=cs.filter(c=>!c.joker);
+  const rc={},sc={};
+  rest.forEach(c=>{ rc[c.rv]=(rc[c.rv]||0)+1; sc[c.s]=(sc[c.s]||0)+1; });
+  const ranks=Object.keys(rc).map(Number);
+  const counts=Object.values(rc).sort((a,b)=>b-a);
+  const flushPossible=(rest.length===0)||(Object.keys(sc).length===1);
+  function straightStart(){
+    const present=new Set(rest.map(c=>c.rv));
+    for(const st of [10,9,8,7,6,5,4,3,2,1]){
+      const need=[];
+      for(let k=0;k<5;k++){ let r=st+k; if(r>13) r-=13; if(!present.has(r)) need.push(r); }
+      if(new Set(need).size===need.length && need.length<=jok) return st;
+    }
+    return 0;
+  }
+  const sStart=straightStart();
+  if(flushPossible&&sStart) return sStart===10?'rf':'sf';
+  if(ranks.some(r=>rc[r]+jok>=5)) return '5k';
+  if(counts[0]+jok>=4) return '4k';
+  for(const a of ranks) for(const b of ranks){
+    if(a===b) continue;
+    for(const [t,p] of [[a,b],[b,a]]){
+      if(Math.max(0,3-rc[t])+Math.max(0,2-rc[p])<=jok) return 'fh';
+    }
+  }
+  if(flushPossible) return 'fl';
+  if(sStart) return 'st';
+  if(counts[0]+jok>=3) return '3k';
+  const allRanks=[...new Set([...ranks,...Array.from({length:13},(_,i)=>i+1)])];
+  for(const a of allRanks) for(const b of allRanks){
+    if(a===b) continue;
+    const need=Math.max(0,2-(rc[a]||0))+Math.max(0,2-(rc[b]||0));
+    // 「2 PAIRS (J+)」：其中一對要是 J 以上（J/Q/K，A 也算大）；10 以下的小兩對不中
+    if(need<=jok && (a>=11||a===1||b>=11||b===1)) return '2p';
+  }
+  return 'none';
+}
+function bestHand(cards){
+  const combos=[];
+  for(let a=0;a<7;a++)for(let b=a+1;b<7;b++)for(let c=b+1;c<7;c++)for(let d=c+1;d<7;d++)for(let e=d+1;e<7;e++)
+    combos.push([a,b,c,d,e]);
+  let best='none', bestCombo=null;
+  for(const cm of combos){
+    const k=eval5(cm.map(i=>cards[i]));
+    if(k!=='none'&&(best==='none'||PMAP[k].mult>PMAP[best].mult)){ best=k; bestCombo=cm; }
+  }
+  return {key:best, combo:bestCombo||[]};
+}
+
+/* ═══════════ 進分（固定 240，不足自動補） ═══════════ */
+function ensureFeed(amount){
+  if(S.feed>=amount) return true;
+  if(S.pool<=0) return false;
+  const add=Math.min(FEED,S.pool);
+  S.pool-=add; S.feed+=add; play('action'); writeSave();
+  return S.feed>=amount;
+}
+
+/* ═══════════ 流程 ═══════════ */
+async function startHand(){
+  if(S.phase!=='idle') return;
+  if(S.pending>0) collect();
+  if(!ensureFeed(BET_UNIT)){ setMsg('餘額不足，請投幣（或按 C）'); return; }
+  const {cards,mode}=dealCards();
+  S.hand=cards; S.mode=mode; S.cards=new Array(7).fill(null); S.revealed=new Array(7).fill(false);
+  S.bets=[]; S.hit=null; S.visible=0; S.phase='play';
+  setMsg(''); setPrompt(P_BETOPEN);
+  render(); updateButtons();
+  await bet();
+}
+async function bet(){
+  if(S.phase!=='play'||S.bets.length>=MAX_BETS) return;
+  if(!ensureFeed(BET_UNIT)){ setMsg('餘額不足，請投幣'); return; }
+  S.feed-=BET_UNIT; S.bets.push(BET_UNIT); writeSave();
+  const st=S.bets.length;
+  const show=(idx)=>{ S.cards[idx]=S.hand[idx]; S.revealed[idx]=true; };
+  if(st===1){                                    // 開局：1、2、3 依序出來（2 蓋著）
+    play('f1');
+    S.visible=1; show(0); render(); await sleep(200);
+    S.visible=2; render();            await sleep(200);
+    S.visible=3; show(2); render();
+  } else if(st===2){                             // 加註1：4（蓋）→ 5
+    play('f2');
+    S.visible=4; render();            await sleep(200);
+    S.visible=5; show(4); render();
+  } else if(st===3){                             // 加註2：6
+    play('f3');
+    S.visible=6; show(5); render();
+  } else {                                       // 加註3：7 → 掀 2 → 掀 4
+    play('f4');
+    S.visible=7; show(6); render();   await sleep(260);
+    play('f5'); show(1); render();    await sleep(260);
+    play('f3b'); show(3); render();   await sleep(300);   // ★ 掀第 4 張（電子牌）：用「第 3 注挪過來」的第二響
+    await settle(); return;
+  }
+  render(); updateButtons();
+}
+async function openNow(){
+  if(S.phase!=='play') return;
+  play('open');
+  /* ★ 2026-10-09：按 OPEN 不再「一次全開」，改成照原機順序一張一張開：
+     已押幾注就從那一階段之後接下去（5 → 6 → 7 → 掀第 2 張 → 掀第 4 張電子牌），
+     每張牌出現的節奏與正常加注時完全一樣。 */
+  const st=S.bets.length;                        // 目前押了幾注（1~3 才會走到這裡）
+  const show=idx=>{ S.cards[idx]=S.hand[idx]; S.revealed[idx]=true; };
+  if(st<2){ play('f2'); S.visible=4; render();  await sleep(200);
+                       S.visible=5; show(4); render(); await sleep(200); }
+  if(st<3){ play('f3'); S.visible=6; show(5); render(); await sleep(220); }
+  if(st<4){ play('f4'); S.visible=7; show(6); render(); await sleep(260); }
+  play('f5');
+  if(!S.revealed[1]){ show(1); render(); await sleep(260); }   // 掀第 2 張
+  if(!S.revealed[3]){ play('f3b'); show(3); render(); await sleep(300); }   // 掀第 4 張（電子牌）
+  S.visible=7; render();
+  await settle();
+}
+async function settle(){
+  S.phase='settle'; updateButtons();
+  const res=bestHand(S.hand), key=res.key, b=totalBet();
+  S.hit=(key==='none')?null:key;
+  S.dim=(key==='none')?[]:[0,1,2,3,4,5,6].filter(i=>!res.combo.includes(i));
+  render();
+  if(key==='none'){
+    play('lose'); setPrompt('<span class="win glow">NO WIN</span>'); setMsg('沒中獎');
+    S.games++; writeSave(); await sleep(1300); endHand(); return;
+  }
+  const mult=PMAP[key].mult, amount=b*mult;
+  // ★ 獎項音效分級（用戶 2026-10-09）：兩對／3條／順子／同花／葫蘆 → 短音效；鐵支以上 → 原本的長中獎音
+  play(['2p','3k','st','fl','fh'].includes(key)? 'winS' : 'win');
+  setPrompt('<span class="win glow">WIN!</span>');
+  const cell=document.getElementById('pt-'+key);
+  // ★ 跑分節奏：整段固定時長（獎項越大給越久），一定在中獎音（5.1s）結束前跑完
+  //   T = 1.2s ~ 2.6s；step = 每跳幾「分」，interval 固定 32ms
+  const T=Math.min(2600, 1200+mult*60), step=Math.max(1, Math.ceil(amount/(T/32)));
+  let shown=0;
+  if(cell) cell.textContent='0';
+  while(shown<amount){
+    shown=Math.min(amount,shown+step);
+    if(cell) cell.textContent=shown;
+    await sleep(32);
+  }
+  if(cell) cell.textContent=amount;
+  S.pending=amount; S.games++; writeSave(); render(); updateButtons();
+}
+function endHand(){
+  S.phase='idle'; S.bets=[]; S.cards=[]; S.revealed=[]; S.visible=0; S.hit=null; S.hand=[]; S.dim=[]; S.pending=0; S.duMode=false;   // du.history 不清：比倍要「連續記憶」
+  setMsg('PLEASE BET'); setPrompt(P_PLEASE); render(); updateButtons();
+}
+
+/* ═══════════ 比倍 ═══════════ *//* ═══════════ 比倍（同一畫面比，保留最近出牌） ═══════════ */
+const du={amt:0,base:0,round:0,card:null,picked:false,lock:false,history:[]};
+function duUrl(c){ const ext=(c.r==='J'||c.r==='Q'||c.r==='K')?'.webp':'.png'; return 'cards/'+c.r+c.s+ext; }
+function offerDoubleUp(amount){
+  S.duMode=true; du.amt=amount; du.base=amount; du.round=0; du.history=du.history||[]; du.picked=false; du.lock=false;
+  S.pending=amount;
+  newDuCard();
+}
+function newDuCard(){
+  const d=newDeck().filter(c=>!c.joker);              // ★ 2026-10-09：比倍牌組改回 52 張（用戶反映 7 與鬼牌太多）→ 保送率 7.7%（含鬼牌時是 11.1%）
+  du.card=d[Math.floor(Math.random()*d.length)];      // 先抽好、先不亮（亮牌會洩漏答案）
+  du.picked=false; du.lock=false;
+  setPrompt('<span class="bet glow">BIG</span> <span class="or glow">OR</span> <span class="open glow">SMALL</span>');
+  render(); updateButtons();
+}
+function duPick(small){
+  if(du.picked||du.lock) return;
+  du.picked=true; du.lock=true; render(); updateButtons();
+  const jk=!!du.card.joker;
+  const rv=du.card.rv, big=rv>7, tag= cname(du.card);
+  const pushHist=()=>{ du.history.push(du.card); if(du.history.length>10) du.history.shift(); };   // 連續記憶：留最近 10 張
+  const isLast = du.round>=4;                        // 這一把＝第 5 關（最後一關）
+  if(rv===7||jk){                                    // 7 保送；鬼牌視同 7（實機：翻到 JOKER 直接贏）
+    // ★ 2026-10-10 用戶定版：第 5 關也一樣 —— 保送 ×2、不算關，仍要留在第 5 關再比一次；猜中才 ×4＋奏樂
+    du.amt*=2; play('dup'); pushHist(); S.pending=du.amt; writeSave(); render();   // 保送也 ×2（音效＝比倍成功音）
+    setPrompt('<span class="open glow">'+tag+(jk?'　視同 7 點保送 ':'　7 點保送 ')+du.amt+(isLast?'　（不算關，第 5 關再比一次）':'')+'</span>');
+    du.lock=false; setTimeout(()=>newDuCard(),950); return;
+  }
+  if((small&&!big)||(!small&&big)){
+    du.round++;
+    du.amt = du.round>=5 ? Math.round(du.amt*4) : du.amt*2;   // 第 5 關（最後一關）加倍 ×4
+    play('dup'); pushHist(); S.pending=du.amt; writeSave(); render();   // ★ 比倍過關音（用戶 2026-10-09 提供的「比倍成功」音效）
+    setPrompt('<span class="win glow">'+tag+'　過關 '+du.amt+'</span>');
+    if(du.round>=5){ setTimeout(()=>jackpotFinish(),1050); return; }   // ★ 5 關全過 → 大獎儀式（鈴＋音樂＋跑分）
+    du.lock=false; setTimeout(()=>newDuCard(),1050);
+  } else {
+    play('lose'); du.amt=0; pushHist();
+    setPrompt('<span class="bet glow">'+tag+'　比倍失敗</span>');
+    setTimeout(()=>finishDu('比倍失敗'),1050);
+  }
+}
+function finishDu(msg){
+  S.credit+=du.amt; S.pool+=du.amt; S.pending=0; S.duMode=false;   // 沒過關：du.amt=0 → 等於沒入帳；過關：以翻倍後的數字入帳
+  writeSave(); endHand();
+}
+function renderDu(){
+  const BW=140, BH=210, CW=110, CH=165, STEP=70, GAP=26;   // 歷史牌部分重疊（每張露出 70px）
+  const hist=du.history.slice(-10);        // 舊 → 新
+  const shown=hist.slice().reverse();      // ★ 新的靠左：左 → 右＝新 → 舊（新出的壓在舊的上面）
+  const total = BW + GAP + (shown.length? CW+(shown.length-1)*STEP : 0);
+  let x=Math.round((1060-total)/2);
+  setSlot(0, du.picked? du.card : null, !!du.picked, {x:x, top:52, w:BW, h:BH, z:200});
+  x+=BW+GAP;
+  for(let k=0;k<shown.length;k++){ setSlot(k+1, shown[k], true, {x:x, top:74, w:CW, h:CH, z:60+(shown.length-k)}); x+=STEP; }
+  for(let k=1+shown.length;k<11;k++){ const el=slotEl(k); el.style.display='none'; el.dataset.sig=''; }
+  document.getElementById('logo').style.display='none';
+  // ★ 比倍關數資訊（原本完全看不出現在第幾關）
+  const info=document.getElementById('duInfo');
+  const n=Math.min(5, du.round+1), mul=du.base? du.amt/du.base : 1;
+  info.innerHTML = 'D-UP <span class="hi">第 '+n+' / 5 關</span>　獎金 <span class="hi">'+du.amt+'</span>（×'+(Math.round(mul*100)/100)+'）'
+    + (du.round>=4? '　<span class="dim2">最後一關：7 保送 ×2（不算關，要再比一次）</span>' : '');
+  info.style.display='block';
+}
+function slotEl(i){ return document.getElementById('sl'+i); }
+function setSlot(i, card, shown, o){
+  const el=slotEl(i); if(!el) return;
+  // ⚠️ 一定要寫 'block'：.slot 的 CSS 預設是 display:none，寫空字串（'')等於沒覆蓋 → 牌永遠看不到（2026-10-08 P6 的 bug）
+  if(el.style.display!=='block') el.style.display='block';
+  const set=(k,v)=>{ if(el.style[k]!==v) el.style[k]=v; };
+  set('left', o.x+'px'); set('width', o.w+'px'); set('height', o.h+'px'); set('zIndex', String(o.z||1));
+  if(o.top===undefined){ if(el.style.top) el.style.removeProperty('top'); } else set('top', o.top+'px');
+  const sig = (shown&&card)? (card.joker?('JK'+(card.s||'')):'C'+card.r+card.s) : 'BACK';   // ★ 鬼牌要含紅/黑，否則同格換色不重繪
+  if(el.dataset.sig!==sig){
+    el.dataset.sig=sig;
+    if(shown&&card){
+      el.innerHTML = card.joker? '<div class="joker '+(card.s==='B'?'blk':'red')+'"><div class="joker-art"></div><div class="joker-word">JOKER</div></div>'
+                               : '<img class="face" src="'+faceUrl(card)+'" alt="">';
+    } else {
+      el.innerHTML = '<div class="back cardback" style="width:100%;height:100%"></div>';
+    }
+    // 不再加動畫類別（原機也是直接出現）
+  }
+  el.classList.toggle('even', !!o.even);
+  el.classList.toggle('dim',  !!o.dim);
+}
+
+/* ═══════════ 按鈕 ═══════════ */
+function updateButtons(){
+  const inDu=!!S.duMode;
+  document.getElementById('betBtn').textContent = S.bets.length? '加注 20' : '押分 20';
+  document.getElementById('betBtn').style.display = inDu? 'none':'';
+  document.getElementById('openBtn').style.display = inDu? 'none':'';
+  document.getElementById('duBtn').style.display = inDu? 'none':'';
+  document.getElementById('duBigBtn').style.display = inDu? '':'none';
+  document.getElementById('duSmallBtn').style.display = inDu? '':'none';
+  document.getElementById('betBtn').disabled = !(S.phase==='idle'||S.phase==='play') || S.bets.length>=MAX_BETS || inDu;
+  document.getElementById('openBtn').disabled = S.phase!=='play' || inDu;
+  const canGamble = (S.pending>0) && (S.phase==='settle') && !inDu;
+  document.getElementById('duBtn').disabled = !canGamble;
+  document.getElementById('takeBtn').disabled = inDu? (du.lock||du.picked) : !canGamble;
+  document.getElementById('duBigBtn').disabled = du.lock||du.picked;
+  document.getElementById('duSmallBtn').disabled = du.lock||du.picked;
+}
+function collect(){
+  if(!(S.pending>0)) return;
+  S.credit+=S.pending; S.pool+=S.pending; S.pending=0;
+  play('action'); writeSave(); render(); endHand();
+}
+document.getElementById('betBtn').onclick=()=>{ S.phase==='idle'? startHand() : bet(); };
+document.getElementById('openBtn').onclick=openNow;
+document.getElementById('coinBtn').onclick=()=>{ S.pool+=500; play('action'); writeSave(); render(); };
+document.getElementById('duBtn').onclick=()=>{ if(S.pending>0&&S.phase==='settle') offerDoubleUp(S.pending); };
+document.getElementById('takeBtn').onclick=()=>{ if(S.duMode){ if(!du.lock) finishDu('得分'); } else collect(); };
+document.getElementById('duBigBtn').onclick=()=>duPick(false);
+document.getElementById('duSmallBtn').onclick=()=>duPick(true);
+/* ═══════════ 帶牌教學 ═══════════ */
+function buildHelpTables(){
+  const rows=[1,2,3,4,5,6,7,8,9,10,11,12,13].map(v=>({
+    n:RANKN[v],
+    y:cellText(v,'yidai'),
+    e:cellText(v,'erdai')
+  }));
+  const half=Math.ceil(rows.length/2);
+  const mk=arr=>'<table><tr><th>點數</th><th>一帶（×2）</th><th>二帶（×4）</th></tr>'
+    +arr.map(r=>'<tr><td class="rk">'+r.n+'</td><td'+(r.y==='—'?' class="no"':'')+'>'+r.y+'</td><td>'+r.e+'</td></tr>').join('')+'</table>';
+  document.getElementById('helpTables').innerHTML = mk(rows.slice(0,half))+mk(rows.slice(half));
+}
+function openHelp(){ buildHelpTables(); document.getElementById('help').classList.add('on'); }
+function closeHelp(){ document.getElementById('help').classList.remove('on'); }
+document.getElementById('helpBtn').onclick=openHelp;
+document.getElementById('helpClose').onclick=closeHelp;
+document.getElementById('help').onclick=e=>{ if(e.target.id==='help') closeHelp(); };
+
+addEventListener('keydown',e=>{
+  const helpOn=document.getElementById('help').classList.contains('on');
+  if(e.key==='Escape'&&helpOn){ closeHelp(); return; }
+  if(e.key==='h'||e.key==='H'){ e.preventDefault(); helpOn? closeHelp():openHelp(); return; }
+  if(helpOn) return;                                     // 教學視窗開著時，其他按鍵不作用
+  if(S.duMode){
+    if(e.key==='ArrowLeft') duPick(true);
+    if(e.key==='ArrowRight') duPick(false);
+    if(e.key==='ArrowDown'&&!du.lock) finishDu('得分');
+    return;
+  }
+  if(e.key===' '){ e.preventDefault(); S.phase==='idle'? startHand() : bet(); }
+  if(e.key==='o'||e.key==='O') openNow();
+  if(e.key==='c'||e.key==='C'){ S.pool+=500; writeSave(); render(); }
+});
+
+function fit(){ const s=Math.min(innerWidth/1060,innerHeight/600); document.getElementById('wrap').style.transform='scale('+s+')'; }
+addEventListener('resize',fit);
+loadSfx(); fit(); render(); setPrompt(P_PLEASE); setMsg('PLEASE BET'); updateButtons();
+</script>
+</body>
+</html>
