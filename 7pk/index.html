@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <title>HOOBE 7PK</title>
 <!-- ★ 2026-10-10 分享用：連結貼出去時外面顯示的預覽（那張帥圖＝同資料夾的 share.png；以後換圖直接覆蓋同檔名就好） -->
-<meta name="description" content="HOOBE 7PK —— 台灣 90 年代電子撲克機台復刻。這是 HOOBE 工作室的作品，歡迎點連結玩。">
+<meta name="description" content="HOOBE 7PK —— 台灣 90 年代電子撲克機台復刻。HOOBE 工作室的作品，僅供純娛樂之用。">
 <meta property="og:type" content="website">
 <meta property="og:title" content="HOOBE 7PK｜台灣 90 年代電子撲克復刻">
-<meta property="og:description" content="這是 HOOBE 工作室的作品，歡迎點連結玩。">
+<meta property="og:description" content="HOOBE 工作室的作品，僅供純娛樂之用。">
 <meta property="og:url" content="https://casalinpda-tech.github.io/hoobe/7pk/">
 <meta property="og:image" content="https://casalinpda-tech.github.io/hoobe/7pk/share.png">
 <meta property="og:image:width" content="1200">
@@ -217,7 +217,7 @@
     <button id="takeBtn">得分</button>
     <button id="helpBtn">帶牌教學</button>
   </div>
-  <div id="note">這是 HOOBE 工作室的作品，歡迎點連結玩</div>
+  <div id="note">HOOBE 工作室的作品，僅供純娛樂之用</div>
   <div id="hint">空白鍵＝押分／加注　O＝開牌　C＝投幣　H＝帶牌教學</div>
 
   <div id="help">
@@ -542,10 +542,18 @@ function bestHand(cards){
   const combos=[];
   for(let a=0;a<7;a++)for(let b=a+1;b<7;b++)for(let c=b+1;c<7;c++)for(let d=c+1;d<7;d++)for(let e=d+1;e<7;e++)
     combos.push([a,b,c,d,e]);
-  let best='none', bestCombo=null;
+  /* ★ 2026-10-10 修：同賠率的組合要挑「牌面最強」的那一組，不能照列舉順序取第一個。
+     病徵（用戶回報）：J J 3 3 K K 5 會遮蔽 K、K 留 J J 3 3；A A JOK JOK 3 3 6 會遮蔽 A、A 留四條 3。
+     修法：先比倍率，倍率相同時比「牌面點數總和」（A 當 14、鬼牌當 0）→ 留大牌，玩家看起來才對。 */
+  const val=c=> c.joker ? 0 : (c.rv===1 ? 14 : c.rv);
+  let best='none', bestCombo=null, bestSum=-1;
   for(const cm of combos){
     const k=eval5(cm.map(i=>cards[i]));
-    if(k!=='none'&&(best==='none'||PMAP[k].mult>PMAP[best].mult)){ best=k; bestCombo=cm; }
+    if(k==='none') continue;
+    const mult=PMAP[k].mult, sum=cm.reduce((s,i)=>s+val(cards[i]),0);
+    if(best==='none' || mult>PMAP[best].mult || (mult===PMAP[best].mult && sum>bestSum)){
+      best=k; bestCombo=cm; bestSum=sum;
+    }
   }
   return {key:best, combo:bestCombo||[]};
 }
