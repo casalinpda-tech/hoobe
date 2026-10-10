@@ -827,16 +827,18 @@ setTimeout(()=>{ if(window.__loading) document.getElementById('load').classList.
   const audios=Object.keys(SFX).map(k=>SFX[k]);
   const total=urls.length+audios.length; let done=0;
   const step=()=>{ done++; if(done>=total) loadDone(); else loadSetPct(Math.round(done/total*100)); };
-  urls.forEach(u=>{ const im=new Image(); im.onload=im.onerror=step; im.src=u; });
-  audios.forEach(a=>{
-    let counted=false; const one=()=>{ if(counted) return; counted=true; step(); };
+  const once=f=>{ let f2=false; return ()=>{ if(f2) return; f2=true; f(); }; };   // ★ 每個項目只算一次
+  // 圖：onload／onerror 都算完成，並且都給 8 秒保險（避免某個請求卡住不回呼 → 進度停在 9x%）
+  urls.forEach(u=>{ const im=new Image(), one=once(step); im.onload=one; im.onerror=one; setTimeout(one, 8000); im.src=u; });
+  // 音效：能播就算完成；已經載好的直接算
+  audios.forEach(a=>{ const one=once(step);
     if(a.readyState>=4){ one(); return; }
     a.addEventListener('canplaythrough', one, {once:true});
     a.addEventListener('error', one, {once:true});
-    setTimeout(one, 8000);                       // 保險：某段音效卡住也先算完成
+    setTimeout(one, 8000);
   });
 })();
-setTimeout(loadDone, 25000);                     // 最後保險：25 秒一定放行，不讓人卡在載入畫面
+setTimeout(loadDone, 20000);                     // 最後保險：20 秒一定放行，不讓人卡在載入畫面
 </script>
 </body>
 </html>
