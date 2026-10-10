@@ -76,13 +76,20 @@
   .slot .joker .deco .h2{top:24px;background:#1fb84a;}
   .slot .joker .deco .h3{top:32px;background:#1f5ad6;}
   .slot .joker .deco .v{top:0;width:2px;}
-  .slot .joker .deco .v1{right:34px;height:96px;background:#d61f26;}
-  .slot .joker .deco .v2{right:26px;height:112px;background:#1fb84a;}
-  .slot .joker .deco .v3{right:18px;height:70px;background:#1f5ad6;}
-  /* JOKER 底下的小字（用戶指定：Wufeng, Taichung） */
+  .slot .joker .deco .v1{right:44px;height:202px;background:#d61f26;}
+  .slot .joker .deco .v2{right:36px;height:224px;background:#1fb84a;}
+  .slot .joker .deco .v3{right:28px;height:212px;background:#1f5ad6;}
+  /* JOKER 底下的小字（用戶指定：Wufeng, Taichung）★ 2026-10-10：跟 JOKER 同一個斜度 */
   .slot .joker-loc{flex:0 0 auto;font-family:"Courier New",monospace;font-weight:bold;
-    font-size:9px;letter-spacing:1.2px;color:#c62828;opacity:.92;margin-top:2px;}
+    font-size:9px;letter-spacing:1.2px;color:#c62828;opacity:.92;margin-top:2px;
+    transform:rotate(-7deg) skewX(-6deg) scaleX(.85);}
   .slot .joker.blk .joker-loc{color:#141414;}
+  /* ★ 2026-10-10 用戶指定：卡片底下蓋一個琥比掌印 ＋ 2026.10（像印章） */
+  .slot .joker-stamp{position:absolute;left:10px;bottom:9px;display:flex;align-items:center;gap:3px;
+    color:#c62828;opacity:.78;transform:rotate(-6deg);}
+  .slot .joker.blk .joker-stamp{color:#141414;}
+  .slot .joker-stamp svg{display:block;width:19px;height:17px;}
+  .slot .joker-stamp span{font-family:"Courier New",monospace;font-weight:bold;font-size:7.5px;line-height:1;letter-spacing:.5px;}
   .slot .joker-art{flex:0 0 auto;width:58%;aspect-ratio:1/1;border-radius:6px;
     background-image:url('hoobe.gif');background-size:contain;background-repeat:no-repeat;background-position:center;
     box-shadow:0 0 0 2px #c62828,0 2px 5px rgba(0,0,0,.18);}   /* 琥比圖片外框：像牌外圈那樣的細框，紅鬼＝紅 */
@@ -701,7 +708,14 @@ function setSlot(i, card, shown, o){
     if(shown&&card){
       el.innerHTML = card.joker? '<div class="joker '+(card.s==='B'?'blk':'red')+'">'
             +'<div class="deco"><i class="h h1"></i><i class="h h2"></i><i class="h h3"></i><i class="v v1"></i><i class="v v2"></i><i class="v v3"></i></div>'
-            +'<div class="joker-art"></div><div class="joker-word">JOKER</div><div class="joker-loc">Wufeng, Taichung</div></div>'
+            +'<div class="joker-art"></div><div class="joker-word">JOKER</div><div class="joker-loc">Wufeng, Taichung</div>'
+            +'<div class="joker-stamp"><svg viewBox="0 0 24 22" aria-hidden="true"><g fill="currentColor">'
+            +'<ellipse cx="12" cy="14.6" rx="6.1" ry="5.1"/>'
+            +'<ellipse cx="5.3" cy="8.4" rx="2.5" ry="3" transform="rotate(-20 5.3 8.4)"/>'
+            +'<ellipse cx="9.7" cy="5.5" rx="2.4" ry="3.1"/>'
+            +'<ellipse cx="14.3" cy="5.5" rx="2.4" ry="3.1"/>'
+            +'<ellipse cx="18.7" cy="8.4" rx="2.5" ry="3" transform="rotate(20 18.7 8.4)"/>'
+            +'</g></svg><span>2026.10</span></div></div>'
                                : '<img class="face" src="'+faceUrl(card)+'" alt="">';
     } else {
       el.innerHTML = '<div class="back cardback" style="width:100%;height:100%"></div>';
