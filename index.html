@@ -121,6 +121,23 @@
            box-shadow:0 0 0 5px #1c1d1e, 0 0 0 6px var(--line), 0 10px 26px rgba(0,0,0,.5)}
   .who h3{margin:0 0 8px; font-size:17px; letter-spacing:1.5px; color:var(--teal)}
   .who p{margin:0; color:#c2c7c9; font-size:14.5px; line-height:1.9; max-width:520px}
+  /* ── 虛擬實境（琥比遊戲間 3D） ── */
+  .vr{margin-top:22px}
+  .vr-tag{display:inline-block; font-size:11px; letter-spacing:2px; padding:4px 11px; border-radius:99px;
+          color:var(--teal); background:rgba(47,184,168,.14);
+          box-shadow:inset 0 0 0 1px rgba(47,184,168,.5); margin-bottom:10px}
+  .vr h3{margin:0 0 8px; font-size:20px; letter-spacing:1.5px; color:var(--teal)}
+  .vr p{margin:0 0 14px; color:#b6bcbe; font-size:14px; line-height:1.85; max-width:640px}
+  .vr p b{color:var(--teal)}
+  .vr-btns{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .vr-btn{display:inline-block; text-decoration:none; font-size:14px; font-weight:700; letter-spacing:1px;
+          color:#0d1f1d; background:linear-gradient(180deg,#4fd0c0,#2fb8a8); padding:11px 22px; border-radius:9px;
+          box-shadow:0 6px 16px rgba(47,184,168,.28)}
+  .vr-btn:hover{filter:brightness(1.08)}
+  .vr-btn.alt{color:var(--teal); background:rgba(47,184,168,.10);
+              box-shadow:inset 0 0 0 1px rgba(47,184,168,.5)}
+  .vr-btn.alt:hover{background:rgba(47,184,168,.2)}
+  .vr-note{margin-top:12px; color:#8d9395; font-size:12.5px; line-height:1.75}
   .tip{margin:14px 4px 0; text-align:center; color:#9aa0a3; font-size:12.5px; line-height:2}
   .tip b{color:var(--teal)}
   /* 迷你輪盤 廣告卡 */
@@ -270,6 +287,19 @@
   </section>
 
   <div class="tip">小提醒：輪盤盤面會<b>自動縮到滿版</b>。<b>電腦</b>玩效果最完整（也可用 Ctrl ＋／－ 微調）；手機、平板適合預覽嚐鮮，可雙指放大看細節。7PK 第一次開啟要先下載牌面與音效（畫面上會顯示載入進度），載完就順了。</div>
+
+  <section class="case vr">
+    <div class="vr-tag">3D 虛擬實境</div>
+    <h3>參觀琥比遊戲間・虛擬實境</h3>
+    <p>把整間房做成 1:1 的 3D 場景 —— 輪盤桌、5PK、7PK、琥比水果盤、飛鏢機全在裡面，機台螢幕是真的在跑。<br>
+       電腦用滑鼠拖曳環視、左側按鈕直接傳送到各機台；<b>Quest 2</b> 戴上頭盔按 ENTER VR，就能走進琥比的房間：左搖桿走動（有碰撞）、扳機傳送、握把切換聲音。</p>
+    <div class="vr-btns">
+      <a class="vr-btn" href="vr/" target="_blank" rel="noopener">進入 3D 房間 ▶</a>
+      <a class="vr-btn alt" href="vr/panorama.html" target="_blank" rel="noopener">360 全景</a>
+      <a class="vr-btn alt" href="vr/video360.html" target="_blank" rel="noopener">360 影片</a>
+    </div>
+    <div class="vr-note">第一次載入約 12MB（機台影片另計），要等幾秒。手機、平板可以逛，要進 VR 需要 Quest 2 這類頭盔。</div>
+  </section>
 
   <section class="case who">
     <img src="assets/hubi.jpg" alt="琥比">

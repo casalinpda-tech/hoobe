@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>琥比遊戲間 · 360 影片</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #050807; color: #eee6d2; font-family: "Microsoft JhengHei", system-ui, sans-serif; }
+    #overlay { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 40%, #122019 0, #050807 70%); text-align: center; }
+    #overlay h1 { margin: 0 0 10px; font-size: 26px; letter-spacing: 4px; color: #f2c566; }
+    #overlay p { margin: 0 0 22px; color: #a9b8ad; font-size: 13px; }
+    #play { font-family: inherit; font-size: 14px; letter-spacing: 2px; color: #08120f; background: #f2c566; border: 0; border-radius: 6px; padding: 12px 28px; cursor: pointer; }
+    #play:hover { background: #ffd98a; }
+    #hud { position: fixed; left: 18px; bottom: 16px; z-index: 5; font-size: 12px; color: #aebbb2; background: rgba(5,8,7,.55); padding: 8px 12px; border: 1px solid rgba(120,160,145,.25); border-radius: 6px; }
+    #hud a { color: #9fe0d5; text-decoration: none; margin-left: 10px; }
+    #title { position: fixed; left: 18px; top: 16px; z-index: 5; font-size: 15px; letter-spacing: 4px; color: #f2c566; }
+    #title small { display: block; font-size: 10px; letter-spacing: 3px; color: #7fd6c8; margin-top: 4px; }
+    #vid { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: none; left: -10px; top: -10px; }
+  </style>
+</head>
+<body>
+  <div id="title">HOOBE GAME ROOM<small>360° VIDEO</small></div>
+  <div id="hud">拖曳環視 · 播放後可進入 VR · <a href="index.html">回 3D 房間</a> · <a href="panorama.html">360 全景</a></div>
+  <div id="overlay">
+    <div>
+      <h1>360° 環景影片</h1>
+      <p>8 秒 · 2048×1024 · 建議先播放，再按 ENTER VR</p>
+      <button id="play">播 放 影 片</button>
+    </div>
+  </div>
+  <video id="vid" src="hoobe_360.mp4" playsinline loop muted preload="auto"></video>
+
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { VRButton } from 'three/addons/webxr/VRButton.js';
+
+    const overlay = document.getElementById('overlay');
+    const video = document.getElementById('vid');
+    const play = document.getElementById('play');
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.xr.enabled = true;
+    renderer.xr.setReferenceSpaceType('local-floor');
+    document.body.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050807);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.6, 0);
+    camera.rotation.order = 'YXZ';
+
+    const texture = new THREE.VideoTexture(video);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    // BackSide 球內看等向投影影片會左右鏡射，翻轉 U 軸修正
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.repeat.x = -1;
+    texture.offset.x = 1;
+    const sphere = new THREE.Mesh(
+      new THREE.SphereGeometry(20, 64, 40),
+      new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide })
+    );
+    sphere.position.set(0, 1.6, 0);
+    scene.add(sphere);
+
+    play.addEventListener('click', async () => {
+      try {
+        await video.play();
+        overlay.style.display = 'none';
+      } catch (e) {
+        overlay.querySelector('p').textContent = '瀏覽器阻擋播放；請再按一次，或確認 hoobe_360.mp4 在同一資料夾。';
+      }
+    });
+
+    let lon = -Math.PI / 2;
+    let lat = 0;
+    let down = false, px = 0, py = 0;
+    const el = renderer.domElement;
+    el.addEventListener('pointerdown', (e) => { down = true; px = e.clientX; py = e.clientY; el.setPointerCapture(e.pointerId); });
+    el.addEventListener('pointerup', () => { down = false; });
+    el.addEventListener('pointermove', (e) => {
+      if (!down) return;
+      lon -= (e.clientX - px) * 0.005;
+      lat = Math.max(-1.2, Math.min(1.2, lat - (e.clientY - py) * 0.005));
+      px = e.clientX; py = e.clientY;
+    });
+    camera.rotation.y = lon;
+    camera.rotation.x = lat;
+
+    document.body.appendChild(VRButton.createButton(renderer));
+    renderer.setAnimationLoop(() => {
+      if (!renderer.xr.isPresenting) {
+        camera.rotation.y = lon;
+        camera.rotation.x = lat;
+      }
+      renderer.render(scene, camera);
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

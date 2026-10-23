@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>琥比遊戲間 · HOOBE GAME ROOM</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #050807; color: #eee6d2; font-family: "Microsoft JhengHei", system-ui, sans-serif; }
+    #overlay { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 40%, #122019 0, #050807 70%); text-align: center; }
+    #overlay h1 { margin: 0 0 10px; font-size: 30px; letter-spacing: 4px; color: #f2c566; font-weight: 700; }
+    #overlay p { margin: 0; color: #a9b8ad; font-size: 14px; letter-spacing: 1px; }
+    #overlay .bar { width: 220px; height: 3px; background: #23302a; margin: 20px auto 0; overflow: hidden; }
+    #overlay .bar i { display: block; width: 0%; height: 100%; background: #55d6c2; transition: width .2s; }
+    #title { position: fixed; left: 18px; top: 16px; z-index: 5; font-size: 15px; letter-spacing: 4px; color: #f2c566; text-shadow: 0 0 12px rgba(0,0,0,.8); pointer-events: none; }
+    #title small { display: block; font-size: 10px; letter-spacing: 3px; color: #7fd6c8; margin-top: 4px; }
+    #hint { position: fixed; left: 18px; bottom: 16px; z-index: 5; font-size: 12px; color: #aebbb2; background: rgba(5,8,7,.55); padding: 8px 12px; border: 1px solid rgba(120,160,145,.25); border-radius: 6px; pointer-events: none; }
+    #spots { position: fixed; left: 18px; top: 74px; z-index: 7; display: flex; flex-direction: column; gap: 6px; }
+    #spots button, #sound { font-family: inherit; font-size: 12px; color: #dff5ec; background: rgba(8,20,16,.85); border: 1px solid rgba(85,214,194,.45); border-radius: 5px; padding: 6px 12px; cursor: pointer; text-align: left; letter-spacing: 1px; }
+    #spots button:hover, #sound:hover { background: rgba(32,78,64,.9); border-color: #55d6c2; }
+    #sound { margin-top: 8px; }
+    #sound.on { color: #08120f; background: #f2c566; border-color: #f2c566; }
+    #links { position: fixed; right: 18px; top: 16px; z-index: 6; display: flex; gap: 10px; font-size: 12px; letter-spacing: 1px; }
+    #links a { color: #9fe0d5; text-decoration: none; border-bottom: 1px solid rgba(85,214,194,.35); padding-bottom: 2px; }
+    #links a:hover { color: #f2c566; border-color: #f2c566; }
+    #error { display: none; color: #ff9a8a; font-size: 13px; max-width: 420px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div id="title">HOOBE GAME ROOM<small>琥比遊戲間</small></div>
+  <div id="hint">拖曳環視 · 左側按鈕傳送 · 7PK／水果盤影片有聲音，按 SOUND ON · Quest 2：ENTER VR</div>
+  <div id="spots"></div>
+  <button id="sound">SOUND ON</button>
+  <div id="links"><a href="panorama.html">360 全景</a><a href="video360.html">360 影片</a></div>
+  <div id="overlay">
+    <div>
+      <h1>HOOBE GAME ROOM</h1>
+      <p id="msg">載入琥比遊戲間…</p>
+      <div class="bar"><i id="bar"></i></div>
+      <div id="error"></div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js",
+        "three/addons/": "./vendor/addons/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { VRButton } from 'three/addons/webxr/VRButton.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    const overlay = document.getElementById('overlay');
+    const msg = document.getElementById('msg');
+    const bar = document.getElementById('bar');
+    const errorBox = document.getElementById('error');
+    const spotsDiv = document.getElementById('spots');
+    const soundBtn = document.getElementById('sound');
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    renderer.xr.enabled = true;
+    renderer.xr.setReferenceSpaceType('local-floor');
+    renderer.xr.setFramebufferScaleFactor(1.0);
+    document.body.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050807);
+    scene.fog = new THREE.FogExp2(0x07110c, 0.035);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.05, 100);
+    camera.position.set(0, 1.7, 3.6);
+
+    // Desktop camera + separate XR rig (XR pose is relative to the rig)
+    const xrRig = new THREE.Group();
+    xrRig.position.set(0, 0, 3.6);
+    scene.add(xrRig);
+    const xrCamera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.05, 100);
+    xrCamera.position.set(0, 1.7, 0);
+    xrRig.add(xrCamera);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1.15, 0.6);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.minDistance = 0.4;
+    controls.maxDistance = 8;
+    controls.maxPolarAngle = Math.PI / 2 - 0.02;
+    controls.update();
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.20));
+    scene.add(new THREE.HemisphereLight(0xbfd8d0, 0x1a120a, 0.85));
+    const key = new THREE.DirectionalLight(0xffe0b0, 1.8);
+    key.position.set(-3, 4, 1);
+    scene.add(key);
+    const cool = new THREE.DirectionalLight(0x8fe0d8, 0.7);
+    cool.position.set(3, 3, -2);
+    scene.add(cool);
+    const p1 = new THREE.PointLight(0xffb060, 18, 7, 2);
+    p1.position.set(-1.5, 2.6, -0.1);
+    scene.add(p1);
+    const p2 = new THREE.PointLight(0xffb060, 12, 6, 2);
+    p2.position.set(2.0, 2.5, 1.8);
+    scene.add(p2);
+    const p3 = new THREE.PointLight(0x7fd6c8, 7, 6, 2);
+    p3.position.set(0, 2.4, -2.5);
+    scene.add(p3);
+    const p4 = new THREE.PointLight(0xffb060, 8, 5, 2);
+    p4.position.set(0, 2.4, 3.0);
+    scene.add(p4);
+
+    const roomBase = new THREE.Vector3(0, 0, 0);
+    let room = null;
+    let xrSession = null;
+
+    // glTF coordinates: entrance z=3.6, roulette z≈0, back machines z≈-2.7
+    const hotspots = [
+      { name: '入口', x: 0.0, z: 3.6, look: [0.0, 1.20, 0.6] },
+      { name: '輪盤', x: 0.0, z: 1.4, look: [0.0, 1.05, -0.5] },
+      { name: '5PK', x: -2.7, z: -1.7, look: [-2.9, 1.35, -2.45] },
+      { name: '咖啡', x: -2.2, z: 1.2, look: [-0.9, 1.02, 0.35] },
+      { name: '飛鏢', x: 2.2, z: 1.2, look: [3.72, 1.50, 1.80] },
+      { name: '水果盤', x: 1.8, z: -1.7, look: [1.30, 1.28, -2.45] }
+    ];
+
+    const colliders = [
+      [-2.75, 0.95, -1.10, 0.80], // roulette table
+      [-3.95, -1.45, -3.18, -2.38], // 5PK table
+      [-3.95, -3.25, 1.05, 2.55], // cafe counter
+      [-3.88, -3.30, 0.375, 0.925], // drink machine
+      [3.50, 3.95, 1.525, 2.075], // dart machine
+      [0.85, 1.75, -3.02, -2.42], // fruit machine
+      [2.05, 2.95, -3.02, -2.42], // 7PK machine
+      [3.45, 3.95, -0.825, -0.175] // change machine
+    ];
+    const RADIUS = 0.22;
+    const X_MIN = -3.65, X_MAX = 3.65, Z_MIN = -3.0, Z_MAX = 5.3;
+
+    function blocked(x, z) {
+      for (const [x1, x2, z1, z2] of colliders) {
+        if (x > x1 - RADIUS && x < x2 + RADIUS && z > z1 - RADIUS && z < z2 + RADIUS) return true;
+      }
+      return false;
+    }
+
+    function teleportTo(h) {
+      const cx = THREE.MathUtils.clamp(h.x, X_MIN, X_MAX);
+      const cz = THREE.MathUtils.clamp(h.z, Z_MIN, Z_MAX);
+      xrRig.position.set(cx, 0, cz);
+      camera.position.set(cx, 1.7, cz);
+      const L = h.look || [cx, 1.15, cz - 2.0];
+      controls.target.set(L[0], L[1], L[2]);
+      controls.update();
+    }
+
+    // six teleport pads + labels
+    const markers = [];
+    function makeLabel(text) {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 64;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = 'rgba(5,10,8,0.78)';
+      ctx.fillRect(0, 0, 256, 64);
+      ctx.strokeStyle = '#55d6c2';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(3, 3, 250, 58);
+      ctx.fillStyle = '#f2c566';
+      ctx.font = 'bold 30px "Microsoft JhengHei", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 128, 33);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+      const sp = new THREE.Sprite(mat);
+      sp.scale.set(0.62, 0.155, 1);
+      sp.position.y = 0.34;
+      return sp;
+    }
+
+    function addMarker(h) {
+      const group = new THREE.Group();
+      group.position.set(h.x, 0, h.z);
+      group.userData.hotspot = h;
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.16, 0.24, 40),
+        new THREE.MeshBasicMaterial({ color: 0x55d6c2, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = 0.015;
+      group.add(ring);
+      const disc = new THREE.Mesh(
+        new THREE.CircleGeometry(0.15, 32),
+        new THREE.MeshBasicMaterial({ color: 0x0f3028, transparent: true, opacity: 0.65, side: THREE.DoubleSide, depthWrite: false })
+      );
+      disc.rotation.x = -Math.PI / 2;
+      disc.position.y = 0.014;
+      group.add(disc);
+      group.add(makeLabel(h.name));
+      scene.add(group);
+      markers.push(group);
+    }
+
+    hotspots.forEach((h) => {
+      addMarker(h);
+      const b = document.createElement('button');
+      b.textContent = h.name;
+      b.addEventListener('click', () => teleportTo(h));
+      spotsDiv.appendChild(b);
+    });
+    // SOUND 併入同一條 flex 欄，避免絕對定位壓到最後一個傳送鈕（水果盤）
+    spotsDiv.appendChild(soundBtn);
+
+    // ---- 7PK / fruit screen videos ----
+    const videoElements = [];
+    const videoSpecs = [
+      { src: 'fruit_screen.mp4', x: 1.30, y: 1.28, z: -2.4445, w: 0.68, h: 0.3825, bw: 0.68, bh: 0.413 },
+      { src: '7pk_screen.mp4', x: 2.50, y: 1.28, z: -2.4445, w: 0.608, h: 0.342, bw: 0.68, bh: 0.342 }
+    ];
+
+    for (const spec of videoSpecs) {
+      const back = new THREE.Mesh(
+        new THREE.PlaneGeometry(spec.bw, spec.bh),
+        new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: false })
+      );
+      back.position.set(spec.x, spec.y, spec.z - 0.0012);
+      scene.add(back);
+
+      const el = document.createElement('video');
+      el.src = spec.src;
+      el.loop = true;
+      el.muted = true;
+      el.playsInline = true;
+      el.preload = 'auto';
+      el.volume = 0.55;
+      el.style.cssText = 'position:fixed;left:-10px;top:-10px;width:1px;height:1px;opacity:0;pointer-events:none;';
+      document.body.appendChild(el);
+      el.play().catch(() => {});
+
+      const tex = new THREE.VideoTexture(el);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(spec.w, spec.h),
+        new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })
+      );
+      plane.position.set(spec.x, spec.y, spec.z);
+      scene.add(plane);
+      videoElements.push(el);
+    }
+
+    let soundOn = false;
+    function setSound(on) {
+      soundOn = on;
+      for (const el of videoElements) {
+        el.muted = !on;
+        if (on) el.play().catch(() => {});
+      }
+      soundBtn.textContent = on ? 'SOUND OFF' : 'SOUND ON';
+      soundBtn.classList.toggle('on', on);
+    }
+    soundBtn.addEventListener('click', () => setSound(!soundOn));
+
+    const loader = new GLTFLoader();
+    loader.load(
+      'hoobe_room.glb',
+      (gltf) => {
+        room = gltf.scene;
+        room.position.copy(roomBase);
+        room.traverse((o) => {
+          if (o.isMesh) {
+            o.frustumCulled = true;
+            if (o.material && !Array.isArray(o.material)) o.material.side = THREE.FrontSide;
+          }
+        });
+        scene.add(room);
+        overlay.style.display = 'none';
+      },
+      (xhr) => {
+        if (xhr.total) {
+          const pct = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
+          msg.textContent = `載入琥比遊戲間… ${pct}%`;
+          bar.style.width = pct + '%';
+        } else {
+          msg.textContent = `載入琥比遊戲間… ${(xhr.loaded / 1024 / 1024).toFixed(1)} MB`;
+        }
+      },
+      (err) => {
+        console.error(err);
+        msg.textContent = '載入失敗';
+        bar.style.width = '0%';
+        errorBox.style.display = 'block';
+        errorBox.textContent = '找不到 hoobe_room.glb，或檔案不是有效的 GLB。請確認 index.html 與 hoobe_room.glb 放在同一個資料夾，並透過 HTTPS／localhost 開啟。';
+      }
+    );
+
+    document.body.appendChild(VRButton.createButton(renderer));
+
+    const raycaster = new THREE.Raycaster();
+    const tempMatrix = new THREE.Matrix4();
+    for (let i = 0; i < 2; i++) {
+      const controller = renderer.xr.getController(i);
+      const geo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, -1.6)
+      ]);
+      const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x55d6c2, transparent: true, opacity: 0.75 }));
+      controller.add(line);
+      controller.addEventListener('selectstart', () => {
+        tempMatrix.identity().extractRotation(controller.matrixWorld);
+        raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+        const hits = raycaster.intersectObjects(markers, true);
+        if (!hits.length) return;
+        let o = hits[0].object;
+        while (o && !o.userData.hotspot) o = o.parent;
+        if (o && o.userData.hotspot) teleportTo(o.userData.hotspot);
+      });
+      controller.addEventListener('squeezestart', () => setSound(!soundOn));
+      scene.add(controller);
+    }
+
+    renderer.xr.addEventListener('sessionstart', () => {
+      xrSession = renderer.xr.getSession();
+      controls.enabled = false;
+      spotsDiv.style.display = 'none';
+      document.getElementById('hint').textContent = '左搖桿移動（有碰撞）· 扳機傳送 · 握把切換聲音 · 轉頭環視';
+    });
+    renderer.xr.addEventListener('sessionend', () => {
+      xrSession = null;
+      controls.enabled = true;
+      camera.position.set(xrRig.position.x, 1.7, xrRig.position.z);
+      controls.target.set(xrRig.position.x, 1.15, xrRig.position.z - 2.0);
+      controls.update();
+      spotsDiv.style.display = 'flex';
+      document.getElementById('hint').textContent = '拖曳環視 · 左側按鈕傳送 · 7PK／水果盤影片有聲音，按 SOUND ON · Quest 2：ENTER VR';
+    });
+
+    function updateXRMove(dt) {
+      if (!renderer.xr.isPresenting || !xrSession) return;
+      for (const src of xrSession.inputSources) {
+        const gp = src.gamepad;
+        if (!gp || !gp.axes || gp.axes.length < 4) continue;
+        const ax = gp.axes[2] || 0;
+        const ay = gp.axes[3] || 0;
+        if (Math.abs(ax) < 0.15 && Math.abs(ay) < 0.15) continue;
+        const speed = 1.5 * dt;
+        const nx = THREE.MathUtils.clamp(xrRig.position.x + ax * speed, X_MIN, X_MAX);
+        const nz = THREE.MathUtils.clamp(xrRig.position.z + ay * speed, Z_MIN, Z_MAX);
+        if (!blocked(nx, xrRig.position.z)) xrRig.position.x = nx;
+        if (!blocked(xrRig.position.x, nz)) xrRig.position.z = nz;
+      }
+    }
+
+    const clock = new THREE.Clock();
+    renderer.setAnimationLoop(() => {
+      const dt = Math.min(clock.getDelta(), 0.05);
+      updateXRMove(dt);
+      if (!renderer.xr.isPresenting) controls.update();
+      renderer.render(scene, renderer.xr.isPresenting ? xrCamera : camera);
+    });
+
+    window.addEventListener('resize', () => {
+      const a = window.innerWidth / window.innerHeight;
+      camera.aspect = a;
+      camera.updateProjectionMatrix();
+      xrCamera.aspect = a;
+      xrCamera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
