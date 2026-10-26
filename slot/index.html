@@ -87,23 +87,40 @@
 
         .stat {
             text-align: center;
+            min-width: 80px;
+            flex: 1;
         }
 
         .stat-label {
             font-size: 10px;
             color: #aaa;
             margin-bottom: 3px;
+            font-variant-numeric: tabular-nums;
         }
 
         .stat-value {
             font-size: 20px;
             color: #ffd700;
             text-shadow: 0 0 10px #ffd700;
+            font-variant-numeric: tabular-nums;
         }
+        .stat-value#coins { text-align: left; }
+        .stat-value#hubiPoints { text-align: right; }
+        .stats-bar .stat:nth-child(1) { text-align: left; }
+        .stats-bar .stat:nth-child(3) { text-align: right; }
 
         .stat-value.hubi {
             color: #ff6b6b;
             text-shadow: 0 0 10px #ff4444;
+        }
+
+        /* 積分數字：Orbitron 的數字寬度不一致（1=7.8px, 4=14.6, 8=16.7），
+           靠右對齊時每次數值變動左緣就會跳動十幾 px，看起來像在抖。
+           改用固定寬度的數字槽，每個位數佔一樣寬，數值再怎麼跳都不會左右晃。 */
+        .stat-value.hubi .dg {
+            display: inline-block;
+            width: 0.835em;
+            text-align: center;
         }
 
         .slot-machine {
@@ -226,7 +243,7 @@
             transition: transform 0.1s;
             line-height: 1;
         }
-        .reel-symbol img {
+        .reel-symbol img, .reel-symbol-img {
             width: 88px;
             height: 88px;
             display: block;
@@ -373,6 +390,73 @@
         .btn-auto:active {
             transform: translateY(2px);
             box-shadow: 0 2px 0 #4a235a, 0 3px 10px rgba(0,0,0,0.3);
+        }
+
+        .btn-bank {
+            background: linear-gradient(180deg, #2ecc71 0%, #27ae60 50%, #1e8449 100%);
+            color: white;
+            font-size: 12px;
+            padding: 15px 12px;
+            box-shadow: 0 4px 0 #145a32, 0 6px 15px rgba(0,0,0,0.3);
+        }
+        .btn-bank:active { transform: translateY(2px); box-shadow: 0 2px 0 #145a32, 0 3px 10px rgba(0,0,0,0.3); }
+
+        .sound-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #ffd700;
+            color: #ffd700;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .sound-toggle:active { transform: scale(0.9); }
+
+        .player-panel {
+            position: absolute;
+            left: 10px;
+            top: 0px;
+            background: rgba(0,0,0,0.75);
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 3px 8px;
+            z-index: 999;
+        }
+        .player-self { color: #2ecc71; font-size: 10px; white-space: nowrap; }
+        .player-self .table-num { color: #ffd700; font-weight: bold; }
+        .player-self .gender-icon { font-size: 10px; margin: 0 2px; }
+        .player-self .pname { color: #fff; }
+        .hubi-winner {
+            position: absolute;
+            left: 10px;
+            top: 22px;
+            padding: 2px 8px;
+            z-index: 999;
+            color: #2ecc71;
+            font-size: 9px;
+            white-space: nowrap;
+            text-shadow: 0 0 6px rgba(46,204,113,0.5);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
         }
 
         .btn-auto.active {
@@ -769,12 +853,30 @@
     </style>
 </head>
 <body>
+    <!-- 玩家設定彈窗 -->
+    <div class="overlay" id="playerSetupOverlay" style="display:none;">
+        <div class="overlay-content" style="background:#1a1a2e;border:2px solid #ffd700;border-radius:10px;padding:20px;text-align:center;min-width:250px;">
+            <h2 style="color:#ffd700;margin-bottom:15px;font-size:14px;">🎰 玩家設定</h2>
+            <input type="text" id="playerNameInput" placeholder="輸入稱呼" maxlength="8" style="width:80%;padding:8px;margin-bottom:10px;border-radius:5px;border:1px solid #ffd700;background:#0a0a15;color:#fff;font-size:14px;text-align:center;">
+            <select id="playerGenderSelect" style="width:80%;padding:8px;margin-bottom:15px;border-radius:5px;border:1px solid #ffd700;background:#0a0a15;color:#fff;font-size:12px;">
+                <option value="male">♂ 男性</option>
+                <option value="female">♀ 女性</option>
+            </select>
+            <button onclick="submitProfile()" style="background:linear-gradient(180deg,#ffd700 0%,#daa520 100%);color:#000;padding:8px 20px;border:none;border-radius:5px;font-size:14px;cursor:pointer;font-weight:bold;">確認</button>
+        </div>
+    </div>
+
     <div class="game-container">
-        <button class="sound-toggle" id="soundToggle">🔊</button>
+        <button class="sound-toggle" id="captureBtn">📷</button>
         
         <div class="game-header">
             <h1 class="game-title">琥比水果盤</h1>
+            <div id="onlineBadge" style="font-size:8px;color:#2ecc71;text-align:center;margin-top:-5px;">🟢 ONLINE <span id="playerCount">1</span>人在線</div>
         </div>
+        <div class="player-panel" id="playerPanel" style="display:none;">
+            <div class="player-self" id="playerSelfInfo"></div>
+        </div>
+        <div class="hubi-winner" id="hubiWinner" style="display:none;"></div>
 
         <div class="stats-bar">
             <div class="stat">
@@ -793,15 +895,15 @@
 
         <div class="slot-machine">
             <div class="reels-container" id="reelsContainer">
-                <div class="reel" data-index="0"><span class="reel-symbol">🍉</span></div>
-                <div class="reel" data-index="1"><span class="reel-symbol">🍊</span></div>
-                <div class="reel" data-index="2"><span class="reel-symbol">🍇</span></div>
-                <div class="reel" data-index="3"><span class="reel-symbol">🍋</span></div>
-                <div class="reel" data-index="4"><span class="reel-symbol">🔔</span></div>
-                <div class="reel" data-index="5"><span class="reel-symbol">⭐</span></div>
-                <div class="reel" data-index="6"><span class="reel-symbol">🍇</span></div>
-                <div class="reel" data-index="7"><span class="reel-symbol">🍊</span></div>
-                <div class="reel" data-index="8"><span class="reel-symbol">🍉</span></div>
+                <div class="reel" data-index="0"><span class="reel-symbol"><img src="noto_emoji/西瓜.svg" class="reel-symbol-img"></span></div>
+                <div class="reel" data-index="1"><span class="reel-symbol"><img src="noto_emoji/柳橙.svg" class="reel-symbol-img"></span></div>
+                <div class="reel" data-index="2"><span class="reel-symbol"><img src="noto_emoji/葡萄.svg" class="reel-symbol-img"></span></div>
+                <div class="reel" data-index="3"><span class="reel-symbol"><img src="noto_emoji/檸檬.svg" class="reel-symbol-img"></span></div>
+                <div class="reel" data-index="4"><span class="reel-symbol"><img src="noto_emoji/鈴鐺.svg" class="reel-symbol-img"></span></div>
+                <div class="reel" data-index="5"><span class="reel-symbol"><img src="noto_emoji/星星.svg" class="reel-symbol-img"></span></div>
+                <div class="reel" data-index="6"><span class="reel-symbol"><img src="noto_emoji/葡萄.svg" class="reel-symbol-img"></span></div>
+                <div class="reel" data-index="7"><span class="reel-symbol"><img src="noto_emoji/柳橙.svg" class="reel-symbol-img"></span></div>
+                <div class="reel" data-index="8"><span class="reel-symbol"><img src="noto_emoji/西瓜.svg" class="reel-symbol-img"></span></div>
             </div>
             <div class="paylines-overlay" id="paylinesOverlay"></div>
             <div class="starry-overlay" id="starryOverlay"></div>
@@ -884,6 +986,7 @@
             <button class="btn btn-spin" id="spinBtn" style="padding: 15px 25px;">SPIN</button>
             <button class="btn btn-take" id="takeBtn">TAKE</button>
             <button class="btn btn-auto" id="autoSpinBtn">AUTO</button>
+            <button class="btn btn-bank" id="bankBtn">BANK</button>
         </div>
 
         <div class="total-spins" style="text-align: center; margin-top: 10px;">
@@ -895,7 +998,7 @@
 
     <script>
         const HUBI_SYMBOL = 'HUBI';
-        const HUBI_IMAGE = 'hoobe.gif';
+        const HUBI_IMAGE = 'hoobe.webp';
         const SYMBOLS = ['🍉', '🍊', '🍇', '🍋', '🍒', '🔔', '⭐', 'HUBI'];
         const PAYOUTS = {
             '⭐': 10,
@@ -954,6 +1057,12 @@
         let savedSpecialType = null;
         let specialPauseTimer = null; // 特別獎10秒暫停計時器
         let persistentSpecialBg = null; // 特別獎流程中保留的背景色（跨轉動保留）
+        let isOnline = false;
+        let playerId = '離線';
+        let pendingAutoSpin = false;
+        let pendingStarryConsolation = false;
+        let myProfile = { name: '', gender: 'male' };
+        let ws = null;
         
         function clearSpecialPauseTimer() {
             if (specialPauseTimer) {
@@ -966,8 +1075,8 @@
             clearSpecialPauseTimer();
             specialPauseTimer = setTimeout(() => {
                 specialPauseTimer = null;
-                // 10秒到，如果 autoSpin 還在 true 就繼續自動轉動
-                if (autoSpin && !isSpinning && coins >= currentBet) {
+                // 10秒到，連線版由伺服器驅動即使 autoSpin 未開也要繼續
+                if ((autoSpin || isOnline) && !isSpinning && coins >= currentBet) {
                     spin();
                 }
             }, 10000);
@@ -1043,7 +1152,191 @@
             updateDisplay();
         }
 
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        var audioCtx = null;
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+        const audioContext = audioCtx;
+        
+        function updatePlayerSelf(players, myId) {
+            var selfInfo = document.getElementById('playerSelfInfo');
+            if (!selfInfo) return;
+            for (var i = 0; i < players.length; i++) {
+                if (players[i].id === myId) {
+                    var p = players[i];
+                    var genderIcon = p.gender === 'female' ? '♀' : '♂';
+                    selfInfo.innerHTML = '<span class="table-num">#' + p.table + '</span>'
+                        + '<span class="gender-icon">' + genderIcon + '</span>'
+                        + '<span class="pname">' + p.name + '</span>';
+                    return;
+                }
+            }
+        }
+        
+        var offlineOverlay = document.createElement('div');
+        offlineOverlay.id = 'offlineOverlay';
+        offlineOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;color:#e74c3c;font-size:18px;text-align:center;';
+        offlineOverlay.innerHTML = '🔴 伺服器連線中斷<br><span style="font-size:14px;color:#aaa;margin-top:10px;">點擊此處重新連線</span>';
+        offlineOverlay.style.cursor = 'pointer';
+        offlineOverlay.onclick = function() { window.location.href = window.location.pathname + '?t=' + Date.now(); };
+        document.body.appendChild(offlineOverlay);
+        
+        var connectTimer = null;
+        var everOnline = false;   // 這一頁是否「連上過」主持人（決定要不要顯示中斷遮罩）
+
+        function connectServer() {
+            try {
+                connectTimer = setTimeout(function() {
+                    // 從來沒連上過＝靜態站（GitHub Pages 等）的單機模式，安靜地玩，不要擋畫面
+                    if (!isOnline) {
+                        if (everOnline) {
+                            document.getElementById('offlineOverlay').style.display = 'flex';
+                        } else {
+                            document.getElementById('onlineBadge').style.display = 'none';
+                        }
+                    }
+                }, 5000);
+                // 依照頁面協議選擇 ws/wss（ngrok https 要用 wss，區域網路 http 用 ws）
+                var wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                var wsHost = window.location.host;
+                ws = new WebSocket(wsProtocol + '//' + wsHost);
+                ws.onopen = function() {
+                    isOnline = true;
+                    everOnline = true;
+                    clearTimeout(connectTimer);
+                    document.getElementById('offlineOverlay').style.display = 'none';
+                };
+                ws.onmessage = function(e) {
+                    var data;
+                    try { data = JSON.parse(e.data); } catch(ex) { return; }
+                    switch (data.type) {
+                        case 'init':
+                            playerId = data.playerId;
+                            totalSpins = data.totalSpins;
+                            hubiPoints = data.hubiPoints;
+                            superTrigger = data.superTrigger;
+                            if (data.playerCount !== undefined) document.getElementById('playerCount').textContent = data.playerCount;
+                            if (data.players) updatePlayerSelf(data.players, playerId);
+                            document.getElementById('playerPanel').style.display = '';
+                            updateDisplay();
+                            document.getElementById('playerSetupOverlay').style.display = 'flex';
+                            break;
+                        case 'player_list':
+                            if (data.players) updatePlayerSelf(data.players, playerId);
+                            if (data.playerCount !== undefined) document.getElementById('playerCount').textContent = data.playerCount;
+                            break;
+                        case 'profile_ack':
+                            document.getElementById('playerSetupOverlay').style.display = 'none';
+                            break;
+                        case 'spin_ack':
+                            pendingSpinAck = false;
+                            totalSpins = data.totalSpins;
+                            superTrigger = data.superTrigger;
+                            hubiPoints = data.hubiPoints;
+                            if (data.playerCount !== undefined) document.getElementById('playerCount').textContent = data.playerCount;
+                            updateDisplay();
+                            if (data.isSuperTrigger) {
+                                guaranteedSpecialJackpot = 'super';
+                                specialAwardType = 'super';  // 讓 checkWin 能串接琥比全盤流程
+                                // 如果轉已經停完了，馬上觸發下一轉秀出琥比全盤
+                                if (!isSpinning) {
+                                    setTimeout(function() { if (!isSpinning && coins >= currentBet) spin(); }, 300);
+                                }
+                            }
+                            if (data.triggerType === 'plus' || data.triggerType === 'cross') {
+                                guaranteedSpecialJackpot = data.triggerType;
+                                if (data.triggerType === 'plus') specialAwardType = 'plus';
+                                else if (data.triggerType === 'cross') specialAwardType = 'cross';
+                            } else if (data.triggerType === 'jackpot') {
+                                // 使用伺服器指定的水果（含 log 記錄）
+                                guaranteedSpecialJackpot = data.jackpotFruit || '🍇';
+                                guaranteedJackpot = true;
+                            }
+                            if (data.autoSpin && coins >= currentBet) { pendingAutoSpin = true; }
+                            updateDisplay();
+                            break;
+                        case 'announcement':
+                            showMessage(data.message, false);
+                            if (data.playerCount !== undefined) document.getElementById('playerCount').textContent = data.playerCount;
+                            break;
+                        case 'state_update':
+                            totalSpins = data.totalSpins;
+                            if (!data.frozenPoints || playerId !== data.triggeredPlayer) {
+                                hubiPoints = data.hubiPoints;
+                            }
+                            superTrigger = data.superTrigger;
+                            if (data.playerCount !== undefined) document.getElementById('playerCount').textContent = data.playerCount;
+                            updateDisplay();
+                            break;
+                        case 'hubi_jackpot_ack':
+                            hubiPoints = data.hubiPoints;
+                            updateDisplay();
+                            break;
+                        case 'points_ack':
+                            updateDisplay();
+                            break;
+                        case 'hoobe_winner':
+                            var el = document.getElementById('hubiWinner');
+                            el.textContent = '🐶 ' + data.playerName + ' ' + data.time + ' 拉中 ' + data.points + ' 積分';
+                            el.style.display = '';
+                            break;
+                        case 'starry_consolation':
+                            pendingStarryConsolation = true;
+                            showMessage('🌟 恭喜中滿天星特別獎！', false);
+                            break;
+                    }
+                };
+                ws.onclose = function() {
+                    isOnline = false;
+                    // 離線時停止所有轉動，按鍵改為待命
+                    isSpinning = false;
+                    if (autoSpinInterval) { clearTimeout(autoSpinInterval); autoSpinInterval = null; }
+                    if (specialPauseTimer) { clearTimeout(specialPauseTimer); specialPauseTimer = null; }
+                    document.getElementById('spinBtn').disabled = false;
+                    document.getElementById('spinBtn').textContent = 'STOP';
+                    document.getElementById('autoSpinBtn').disabled = false;
+                    updateBetButtonsState();
+                    document.querySelectorAll('.reel').forEach(function(r) { r.classList.remove('spinning'); });
+                    if (everOnline) {
+                        document.getElementById('offlineOverlay').style.display = 'flex';
+                    } else {
+                        // 從沒連上過（靜態站的單機模式）：收掉 ONLINE 燈、按鍵回到 SPIN，不擋畫面
+                        document.getElementById('onlineBadge').style.display = 'none';
+                        document.getElementById('spinBtn').textContent = 'SPIN';
+                    }
+                };
+                ws.onerror = function() {
+                    isOnline = false;
+                    isSpinning = false;
+                    if (autoSpinInterval) { clearTimeout(autoSpinInterval); autoSpinInterval = null; }
+                    if (specialPauseTimer) { clearTimeout(specialPauseTimer); specialPauseTimer = null; }
+                    document.getElementById('spinBtn').disabled = false;
+                    document.getElementById('spinBtn').textContent = 'STOP';
+                    document.getElementById('autoSpinBtn').disabled = false;
+                    updateBetButtonsState();
+                    document.querySelectorAll('.reel').forEach(function(r) { r.classList.remove('spinning'); });
+                    if (everOnline) {
+                        document.getElementById('offlineOverlay').style.display = 'flex';
+                    } else {
+                        // 從沒連上過（靜態站的單機模式）：收掉 ONLINE 燈、按鍵回到 SPIN，不擋畫面
+                        document.getElementById('onlineBadge').style.display = 'none';
+                        document.getElementById('spinBtn').textContent = 'SPIN';
+                    }
+                };
+            } catch(err) { }
+        }
+        
+        window.submitProfile = function() {
+            var name = document.getElementById('playerNameInput').value.trim();
+            var gender = document.getElementById('playerGenderSelect').value;
+            if (!name) name = playerId;
+            myProfile.name = name;
+            myProfile.gender = gender;
+            try { localStorage.setItem('hoobeProfile', JSON.stringify(myProfile)); } catch(e) {}
+            if (ws && ws.readyState === 1) {
+                ws.send(JSON.stringify({ type: 'set_profile', name: name, gender: gender }));
+            }
+        };
+        
+        setTimeout(connectServer, 500);
 
         function playSound(type) {
             if (!soundEnabled) return;
@@ -1152,10 +1445,23 @@
             }
         }
 
+        // 積分數字用固定寬度數字槽輸出，避免 Orbitron 數字寬度不一造成左右抖動
+        function setHubiPoints(value) {
+            const el = document.getElementById('hubiPoints');
+            const s = String(value);
+            if (el.dataset.val === s) return;
+            el.dataset.val = s;
+            let html = '';
+            for (let i = 0; i < s.length; i++) {
+                html += '<span class="dg">' + s.charAt(i) + '</span>';
+            }
+            el.innerHTML = html;
+        }
+
         function updateDisplay() {
             document.getElementById('coins').textContent = coins;
             document.getElementById('betDisplay').textContent = currentBet;
-            document.getElementById('hubiPoints').textContent = hubiPoints;
+            setHubiPoints(hubiPoints);
             document.getElementById('totalSpins').textContent = totalSpins;
             document.getElementById('hubiJackpotCount').textContent = hubiJackpotCount;
         }
@@ -1166,6 +1472,11 @@
 
         function takeWin() {
             if (pendingWin > 0 && !isManualTake) {
+                // 琥比全盤時：只設加速旗標，讓 manualScoreWin 自己加速（不開新動畫避免抖動）
+                if (isHubiJackpotShowing) {
+                    isManualTake = true;
+                    return;
+                }
                 isManualTake = true;
                 let winToTake = pendingWin;
                 pendingWin = 0;
@@ -1268,8 +1579,9 @@
                         if (symbol === 'HUBI' || symbol === HUBI_SYMBOL) {
                             if (isHubiItem) {
                                 if (isJackpot) {
+                                    // 琥比全盤：亮「ALL琥比」與「琥比連線」兩行
                                     const hasImg = item.querySelector('img');
-                                    if (hasImg && text.includes('ALL')) {
+                                    if (hasImg && text.includes('琥比')) {
                                         item.classList.add('highlight');
                                     }
                                 } else if (text.includes('琥比') && !text.includes('ALL')) {
@@ -1450,15 +1762,17 @@
             // 清除雪花
             if (clearSnow) { clearSnow(); clearSnow = null; }
             guaranteedJackpot = false;
-            guaranteedSpecialJackpot = null;
             specialAwardType = null;
             savedSpecialType = null;
             persistentSpecialBg = null;
-            // 重置觸發計數器（普通全盤只在已過期時重置，避免被特別獎無限推遲）
-            if (totalSpins >= normalJackpotTrigger) {
-                normalJackpotTrigger = totalSpins + Math.floor(Math.random() * 700) + 800;
+            // 連線版：由伺服器管理觸發器
+            if (!isOnline) {
+                guaranteedSpecialJackpot = null;
+                if (totalSpins >= normalJackpotTrigger) {
+                    normalJackpotTrigger = totalSpins + Math.floor(Math.random() * 700) + 800;
+                }
+                plusAwardTrigger = totalSpins + Math.floor(Math.random() * 200) + 500;
             }
-            plusAwardTrigger = totalSpins + Math.floor(Math.random() * 200) + 500;
             document.querySelectorAll('.reel').forEach(reel => {
                 reel.classList.remove('guaranteed', 'cross-bg');
             });
@@ -1560,6 +1874,7 @@
                 guaranteedJackpot = false;
                 return true;
             }
+            if (isOnline) return false;
             if (totalSpins >= normalJackpotTrigger) {
                 normalJackpotTrigger = totalSpins + Math.floor(Math.random() * 700) + 800;
                 return true;
@@ -1597,7 +1912,7 @@
                 return symbol;
             }
             // superTrigger 到了：強制下一轉普通全盤出 🍒，觸發超級特別獎→琥比全盤
-            if (totalSpins >= superTrigger) {
+            if (!isOnline && totalSpins >= superTrigger) {
                 return '🍒';
             }
             const normalSymbols = JACKPOT_SYMBOLS.filter(s => s !== 'HUBI' && s !== '🍒');
@@ -1620,7 +1935,7 @@
         }
 
         function spin() {
-            if (isSpinning || coins < currentBet) return;
+            if (isSpinning || coins < currentBet || isHubiJackpotShowing) return;
 
             clearSpecialPauseTimer(); // 手動按轉動時取消任何等待計時
 
@@ -1635,8 +1950,13 @@
             });
 
             coins -= currentBet;
-            totalSpins++;
-            hubiPoints++;
+            // 連線版通知伺服器，由伺服器管理轉數和積分
+            if (isOnline && ws && ws.readyState === 1) {
+                ws.send(JSON.stringify({ type: 'spin', bet: currentBet }));
+            } else {
+                totalSpins++;
+                hubiPoints++;
+            }
             updateDisplay();
             saveGame();
             isSpinning = true;
@@ -1650,6 +1970,14 @@
             const reels = document.querySelectorAll('.reel');
             const finalResults = [];
             
+            // 連線版：滿天星安慰獎（伺服器給予的 STAR 全盤）
+            if (pendingStarryConsolation) {
+                pendingStarryConsolation = false;
+                for (let i = 0; i < 9; i++) {
+                    finalResults.push('⭐');
+                }
+                // 跳過後續的隨機生成，直接進入轉動動畫
+            } else 
             // 特別獎直接顯示圖形（跳過緩衝畫面，直接出十字/交叉排列）
             if (guaranteedSpecialJackpot && !guaranteedJackpot && guaranteedSpecialJackpot !== 'HUBI') {
                 const specialType = guaranteedSpecialJackpot;
@@ -1706,7 +2034,7 @@
                         }
                     }
                 }
-            } else if (totalSpins >= normalJackpotTrigger) {
+            } else if (!isOnline && totalSpins >= normalJackpotTrigger) {
                 normalJackpotTrigger = totalSpins + Math.floor(Math.random() * 700) + 800;
                 const jackpotSymbol = getJackpotSymbol();
                 for (let i = 0; i < 9; i++) {
@@ -1762,14 +2090,19 @@
                     if (guaranteedSpecialJackpot && !guaranteedJackpot) {
                         if (guaranteedSpecialJackpot === 'super') {
                             guaranteedJackpot = true;
-                            // 超級特別獎：不排程下一轉，等跑分完成後自動觸發琥比全盤
+                            // 連線版：spin_ack 在轉動期間到達，結束後自動重轉秀出琥比全盤
+                            setTimeout(function() { if (!isSpinning && coins >= currentBet) spin(); }, 500);
                         } else {
                             guaranteedJackpot = true;
                             if (coins < currentBet) {
                                 coins = currentBet * 10;
                                 updateDisplay();
                             }
-                            if (autoSpin) {
+                            // 檢查自動 spin 旗標（連線版用）
+                            if (pendingAutoSpin) {
+                                pendingAutoSpin = false;
+                                setTimeout(function() { if (coins >= currentBet) spin(); }, 300);
+                            } else if (autoSpin && coins >= currentBet) {
                                 autoSpinInterval = setTimeout(spin, 1500);
                             }
                         }
@@ -1782,7 +2115,10 @@
                         }
                         // 清掉 specialAwardType，下一轉全盤時不再亮特別獎框
                         specialAwardType = null;
-                        if (autoSpin) startSpecialPauseTimer();
+                        // 清掉 savedSpecialType 讓流程結束後 autoSpin 正常運作
+                        savedSpecialType = null;
+                        // 連線版：伺服器觸發的特別獎，即使 autoSpin 未開也要繼續流程
+                        if (autoSpin || isOnline) startSpecialPauseTimer();
                     } else if (savedSpecialType === 'super') {
                         // 超級流程：checkWin 已設定 guaranteedSpecialJackpot = 'HUBI'
                         // 這裡不能清掉它，要保持讓下一轉開出琥比全盤
@@ -1790,8 +2126,9 @@
                         // 10秒等待移到櫻桃跑分完成後（manualScoreWin內啟動），避免時間競賽
                     } else if (guaranteedSpecialJackpot && ['🍇', '🍊', '🍋', '🍉', '🔔', '⭐'].includes(guaranteedSpecialJackpot)) {
                         // 固定圖案轉動完成，用10秒暫停取代停止自動
-                        if (autoSpin) startSpecialPauseTimer();
-                    } else if (autoSpin && coins >= currentBet && !isHubiJackpotShowing) {
+                        // 連線版：伺服器觸發的全盤，即使 autoSpin 未開也要繼續
+                        if (autoSpin || isOnline) startSpecialPauseTimer();
+                    } else if (autoSpin && coins >= currentBet && !isHubiJackpotShowing && !savedSpecialType) {
                         autoSpinInterval = setTimeout(spin, 2500);
                     }
                 }, 300);
@@ -1878,29 +2215,32 @@
             // 只有當 guaranteedSpecialJackpot 為 null 且 guaranteedJackpot 為 false 時才觸發新的特別獎
             // 加上 savedSpecialType !== 'super/plus/cross' 避免流程中的 checkWin 重新觸發（燈框誤亮）
             const specialWasPreSet = !!guaranteedSpecialJackpot; // 記錄是否在這次 checkWin 前就已設定
-            if (!guaranteedSpecialJackpot && !guaranteedJackpot && savedSpecialType !== 'super' && savedSpecialType !== 'plus' && savedSpecialType !== 'cross') {
-                if (totalSpins >= plusAwardTrigger) {
-                    plusAwardTrigger = totalSpins + Math.floor(Math.random() * 200) + 500;
-                    const rand = Math.random();
-                    if (rand < 0.8) {
-                        guaranteedSpecialJackpot = 'plus';
-                    } else {
-                        guaranteedSpecialJackpot = 'cross';
+            // 連線版：由伺服器統一管理所有特別獎觸發，客戶端不自行判斷
+            if (!isOnline) {
+                if (!guaranteedSpecialJackpot && !guaranteedJackpot && savedSpecialType !== 'super' && savedSpecialType !== 'plus' && savedSpecialType !== 'cross') {
+                    if (totalSpins >= plusAwardTrigger) {
+                        plusAwardTrigger = totalSpins + Math.floor(Math.random() * 200) + 500;
+                        const rand = Math.random();
+                        if (rand < 0.8) {
+                            guaranteedSpecialJackpot = 'plus';
+                        } else {
+                            guaranteedSpecialJackpot = 'cross';
+                        }
+                        // 不設 specialAwardType，避免本次 checkWin 誤亮燈框（隨機觸發是為下一轉準備）
                     }
-                    // 不設 specialAwardType，避免本次 checkWin 誤亮燈框（隨機觸發是為下一轉準備）
-                }
 
-                // 特別獎觸發
-                // 琥比全盤（超級特別獎）—— 唯一出琥比的路徑
-                if (cherryLines.length === 8 && totalSpins >= superTrigger) {
-                    guaranteedSpecialJackpot = 'super';
-                    specialAwardType = 'super';
-                } else if (diagonalLines.length === 2 && cherryLines.length !== 8 && guaranteedSpecialJackpot !== 'super') {
-                    guaranteedSpecialJackpot = 'cross';
-                    specialAwardType = 'cross';
-                } else if (plusLines.length === 2 && cherryLines.length !== 8 && guaranteedSpecialJackpot !== 'super') {
-                    guaranteedSpecialJackpot = 'plus';
-                    specialAwardType = 'plus';
+                    // 特別獎觸發
+                    // 琥比全盤（超級特別獎）—— 唯一出琥比的路徑
+                    if (cherryLines.length === 8 && totalSpins >= superTrigger) {
+                        guaranteedSpecialJackpot = 'super';
+                        specialAwardType = 'super';
+                    } else if (diagonalLines.length === 2 && cherryLines.length !== 8 && guaranteedSpecialJackpot !== 'super') {
+                        guaranteedSpecialJackpot = 'cross';
+                        specialAwardType = 'cross';
+                    } else if (plusLines.length === 2 && cherryLines.length !== 8 && guaranteedSpecialJackpot !== 'super') {
+                        guaranteedSpecialJackpot = 'plus';
+                        specialAwardType = 'plus';
+                    }
                 }
             }
             
@@ -1930,7 +2270,7 @@
                     } else {
                         setReelsBackground('starry');
                     }
-                } else if (guaranteedSpecialJackpot) {
+                } else if (guaranteedSpecialJackpot || specialAwardType) {
                     if (specialAwardType === 'plus') {
                         setReelsBackground('plus');
                     } else if (specialAwardType === 'super') {
@@ -1980,7 +2320,9 @@
                     
                     function manualScoreWin() {
                         if (pendingWin > 0 && isHubiJackpotShowing) {
-                            const step = Math.min(5, pendingWin);
+                            // TAKE 按鍵時加大步距加速跑分，不開新動畫避免抖動
+                            var stepSize = isManualTake ? 200 : 5;
+                            const step = Math.min(stepSize, pendingWin);
                             coins += step;
                             pendingWin -= step;
                             updateWinDisplay(pendingWin);
@@ -2011,7 +2353,9 @@
                     
                     function manualScoreWin() {
                         if (pendingWin > 0 && isHubiJackpotShowing) {
-                            const step = Math.min(5, pendingWin);
+                            // TAKE 按鍵時加大步距加速跑分，不開新動畫避免抖動
+                            var stepSize = isManualTake ? 200 : 5;
+                            const step = Math.min(stepSize, pendingWin);
                             coins += step;
                             pendingWin -= step;
                             updateWinDisplay(pendingWin);
@@ -2020,6 +2364,10 @@
                             setTimeout(manualScoreWin, 20);
                         } else if (pendingWin === 0 && isHubiJackpotShowing) {
                             if (isHubiJackpot) {
+                                // 連線版：通知伺服器琥比全盤開出
+                                if (isOnline && ws && ws.readyState === 1) {
+                                    ws.send(JSON.stringify({ type: 'hubi_jackpot' }));
+                                }
                                 setTimeout(() => {
                                     playSound('award');
                                     showMessage('🏆 頒獎中... 🏆', false);
@@ -2051,8 +2399,18 @@
                                             if (coinCounter > 0) {
                                                 coins += 1;
                                             }
-                                            // 剩餘積分留著下次用；全消完才從500起跳
-                                            hubiPoints = remainingPoints > 0 ? remainingPoints : 500;
+                                            // 連線版：通知伺服器積分消耗完畢
+                                            if (isOnline && ws && ws.readyState === 1) {
+                                                hubiPoints = 30000;
+                                                ws.send(JSON.stringify({
+                                                    type: 'points_consumed',
+                                                    remaining: 0
+                                                }));
+                                                // 伺服器的 state_update 會廣播新的 hubiPoints
+                                            } else {
+                                                // 單機版：剩餘積分留著下次用；全消完才從500起跳
+                                                hubiPoints = remainingPoints > 0 ? remainingPoints : 500;
+                                            }
                                             updateDisplay();
                                             saveGame();
                                             showMessage('🐶 琥比全盤!! 🐶', true);
@@ -2477,11 +2835,6 @@
             updateBetButtonsState();
         });
 
-        document.getElementById('soundToggle').addEventListener('click', () => {
-            soundEnabled = !soundEnabled;
-            document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
-        });
-
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' && !isSpinning) {
                 spin();
@@ -2517,6 +2870,56 @@
             }
         });
 
+
+        document.getElementById('bankBtn').addEventListener('click', function() {
+            if (isSpinning || guaranteedJackpot || isHubiJackpotShowing) return;
+            coins += 500;
+            updateDisplay();
+            saveGame();
+            playSound('pointAdd');
+        });
+
+        document.getElementById('captureBtn').addEventListener('click', function() {
+            var btn = this;
+            btn.textContent = '⏳';
+            try {
+                var script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/dom-to-image-more@3/dist/dom-to-image-more.min.js';
+                script.onload = function() {
+                    var container = document.querySelector('.game-container');
+                    var slotMachine = document.querySelector('.slot-machine');
+                    var captureBtn = document.getElementById('captureBtn');
+                    // 暫時關閉 overflow:hidden 確保右側面板完整捕捉
+                    var origSlotOverflow = slotMachine.style.overflow;
+                    slotMachine.style.overflow = 'visible';
+                    // 截圖時隱藏按鈕，避免 ⏳ 擋到標題
+                    captureBtn.style.display = 'none';
+                    domtoimage.toPng(container, { bgColor: '#0a0a1a', width: container.scrollWidth*2, height: container.scrollHeight*2, pixelRatio: 1, style: { overflow: 'visible' } })
+                    .then(function(dataUrl) {
+                        slotMachine.style.overflow = origSlotOverflow;
+                        captureBtn.style.display = '';
+                        var link = document.createElement('a');
+                        var now = new Date();
+                        var ts = now.getFullYear()+('0'+(now.getMonth()+1)).slice(-2)+('0'+now.getDate()).slice(-2)+'_'+('0'+now.getHours()).slice(-2)+('0'+now.getMinutes()).slice(-2)+('0'+now.getSeconds()).slice(-2);
+                        link.download = 'hoobe_'+ts+'.png';
+                        link.href = dataUrl;
+                        link.click();
+                        btn.textContent = '📷';
+                    }).catch(function() { slotMachine.style.overflow = origSlotOverflow; captureBtn.style.display = ''; btn.textContent = '📷'; });
+                };
+                script.onerror = function() { btn.textContent = '📷'; };
+                document.head.appendChild(script);
+            } catch(e) { btn.textContent = '📷'; }
+        });
+
+        // 載入記憶的稱呼
+        try {
+            var savedProfile = JSON.parse(localStorage.getItem('hoobeProfile'));
+            if (savedProfile) {
+                document.getElementById('playerNameInput').value = savedProfile.name || '';
+                document.getElementById('playerGenderSelect').value = savedProfile.gender || 'male';
+            }
+        } catch(e) {}
 
         loadGame();
         updateDisplay();
