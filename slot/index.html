@@ -114,10 +114,10 @@
             text-shadow: 0 0 10px #ff4444;
         }
 
-        /* 積分數字：Orbitron 的數字寬度不一致（1=7.8px, 4=14.6, 8=16.7），
-           靠右對齊時每次數值變動左緣就會跳動十幾 px，看起來像在抖。
+        /* CREDIT／WIN／積分數字：Orbitron 的數字寬度不一致（1=7.8px, 4=14.6, 8=16.7），
+           每次數值變動左緣就會跳動十幾 px，看起來像在抖。
            改用固定寬度的數字槽，每個位數佔一樣寬，數值再怎麼跳都不會左右晃。 */
-        .stat-value.hubi .dg {
+        .stat-value .dg {
             display: inline-block;
             width: 0.835em;
             text-align: center;
@@ -1445,11 +1445,13 @@
             }
         }
 
-        // 積分數字用固定寬度數字槽輸出，避免 Orbitron 數字寬度不一造成左右抖動
-        function setHubiPoints(value) {
-            const el = document.getElementById('hubiPoints');
+        // 數字用固定寬度「數字槽」輸出：Orbitron 的 1 只有 8 的 47% 寬，
+        // 直接寫 textContent 時 CREDIT／WIN／積分每次變動都會左右抖。
+        function setDigits(elId, value) {
+            const el = document.getElementById(elId);
             const s = String(value);
-            if (el.dataset.val === s) return;
+            // 值沒變、而且格子還在（沒有被別的程式改回純文字）就不動 DOM
+            if (el.dataset.val === s && el.children.length === s.length) return;
             el.dataset.val = s;
             let html = '';
             for (let i = 0; i < s.length; i++) {
@@ -1459,15 +1461,15 @@
         }
 
         function updateDisplay() {
-            document.getElementById('coins').textContent = coins;
+            setDigits('coins', coins);
             document.getElementById('betDisplay').textContent = currentBet;
-            setHubiPoints(hubiPoints);
+            setDigits('hubiPoints', hubiPoints);
             document.getElementById('totalSpins').textContent = totalSpins;
             document.getElementById('hubiJackpotCount').textContent = hubiJackpotCount;
         }
 
         function updateWinDisplay(winAmount) {
-            document.getElementById('win').textContent = Math.floor(winAmount);
+            setDigits('win', Math.floor(winAmount));
         }
 
         function takeWin() {
