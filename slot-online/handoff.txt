@@ -1057,6 +1057,9 @@
 · 斷線約 3 秒；切換前 `ss` 確認 3000 沒有 ESTAB（沒人在玩），所以沒打斷任何人。
 · 收尾：使用者桌面兩份小抄已改成 `sudo systemctl restart fruit-slot`，並寫明
   「不可再手動 screen 起（會搶 3000）」；ngrok 仍留在 screen。
-· 尚未實測：`Restart=always` 的 crash 自動拉起（kill -9 後 5 秒復活），等沒人玩的時段做，
-  有結果再更新此則。
+· **crash 自動拉起已實測通過（2026-10-30 17:42）**：
+    kill -9 舊 PID 102067 → 8 秒後 status 顯示 Active: active (running) since 17:42:30、
+    Main PID 變成 102146，`ss` 確認 3000 由新 PID 監聽，`server.log` 有新的啟動段落。
+    外部獨立驗：GET / → 200（md5 不變）、WS init totalSpins 196485 / hubiPoints 36861
+    （與 [LOAD] 一致）→ 崩潰後狀態仍正確載入，**Restart=always 有效**。
 ===========================================================================
