@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# 內部作業頁不索引
+Disallow: /hoobe/slot-online/setup/
+
+Sitemap: https://casalinpda-tech.github.io/hoobe/sitemap.xml
